@@ -1,0 +1,22 @@
+{
+  "name": "kronos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "KRONOS — soczewka czasu (MATRYCA/KRONOS). Ciało odbudowuje się przez: npm install.",
+  "scripts": {
+    "weryfikacja": "node weryfikacja.js",
+    "lens": "node kronos_lens.js",
+    "eter": "node kronos_eter.js",
+    "outer": "node scan_outer.js",
+    "dwarfs": "node scan_dwarfs.js",
+    "natal": "node kronos_natal.js",
+    "test": "node --test testy_rdzen.js"
+  },
+  "dependencies": {
+    "@swisseph/node": "^1.2.2",
+    "astronomy-engine": "^2.1.19"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

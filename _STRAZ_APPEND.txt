@@ -1,0 +1,5 @@
+# STRAŻ APPEND-ONLY — księgi-diamenty poza hashami: mogą TYLKO rosnąć.
+# Format:  <ścieżka>  <bajty>  <liczba wpisów "## ">
+# Wiersz dopisuje się przy pierwszym zapisie do księgi; `hashuj.sh` odświeża liczby,
+# `weryfikacja.js` alarmuje, gdy plik SKURCZYŁ SIĘ — to znaczy, że coś skasowano.
+# Ten plik przychodzi PUSTY: własne dzienniki zakładasz sam (np. ZAPISY_eter.md).

@@ -1,0 +1,59 @@
+#!/usr/bin/env sh
+# ── PRE-COMMIT: PRAWA ZMECHANIZOWANE (BLEDY ⓯ ⓰ ⓱ + PAT) ─────────────────────
+# Status M w hierarchii P→R→M: prawa, których nie trzeba pamiętać, bo nie da się
+# ich złamać. Instalacja: wstan.sh ustawia `git config core.hooksPath .githooks`.
+# Zasada: blokuj twardo tylko to, co ZAWSZE jest błędem; resztę ostrzegaj.
+set -u
+fail=0
+files="$(git diff --cached --name-only --diff-filter=ACM || true)"
+[ -n "$files" ] || exit 0
+
+for f in $files; do
+  [ -f "$f" ] || continue
+  case "$f" in
+    *.md|*.txt|*.sh|*.js|*.py|*.json)
+      # 1. TOKEN/PAT w treści (prawo: token NIGDY do repo — maskuj, rotuj)
+      if grep -qE 'github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{30,}' "$f"; then
+        echo "✗ HOOK: token GitHub w pliku: $f — usuń i ROTUJ przed commitem"; fail=1
+      fi
+      # 2. Znaki kontrolne (BLEDY ⓯: heredoc/backslash → \x01 zamiast treści)
+      if od -An -tx1 "$f" | grep -qE ' 0[0-8bcef]| 1[0-9a-f]'; then
+        echo "✗ HOOK: znak kontrolny w: $f (BLEDY ⓯ — podwójny interpreter?)"; fail=1
+      fi
+      ;;
+  esac
+  case "$f" in
+    *.sh)
+      # 3. OSTRZEŻENIE (BLEDY ⓱): grep -c w łańcuchu bez || true = zielone zero pęka &&
+      if grep -nE 'grep -c[^|]*&&' "$f" | grep -vE '\|\| true' >/dev/null 2>&1; then
+        echo "⚠ HOOK (nie blokuję): w $f jest 'grep -c … &&' bez '|| true' — BLEDY ⓱"
+      fi
+      ;;
+  esac
+  case "$f" in
+    *.js)
+      # 5. OSTRZEŻENIE (BLEDY #21): znak/typ dnia liczony własnym tropikiem zamiast kanonu v4.
+      #    Self-exclude kronos_v4.js (nauka z #17 — silnik nie oznacza sam siebie).
+      case "$f" in */kronos_v4.js|kronos_v4.js) : ;; *)
+        if grep -qE '\.elon' "$f" && grep -qE '/ ?30|Math\.floor' "$f" && ! grep -q 'kronos_v4' "$f"; then
+          echo "⚠ HOOK (nie blokuję): $f liczy znak/typ dnia własnym tropikiem — BLEDY #21. Użyj require('./kronos_v4') (sidLon+getC+CONST)."
+        fi ;;
+      esac
+      ;;
+  esac
+done
+
+# 4. _HASHE.txt w commicie: format 12hex + 2 spacje + istniejący plik (BLEDY ⓯⓰)
+if printf '%s\n' "$files" | grep -qx '_HASHE.txt'; then
+  bad="$(awk 'NF!=2 || $1 !~ /^[0-9a-f]{12}$/ {print "  linia "NR": "$0}' _HASHE.txt)"
+  if [ -n "$bad" ]; then echo "✗ HOOK: _HASHE.txt zły format:"; echo "$bad"; fail=1; fi
+  while read -r h p; do
+    [ -n "$p" ] && [ ! -f "$p" ] && { echo "✗ HOOK: _HASHE wskazuje nieistniejący plik: $p"; fail=1; }
+  done < _HASHE.txt
+fi
+
+if [ "$fail" -ne 0 ]; then
+  echo "── commit ZATRZYMANY przez pre-commit (prawa M nie proszą — blokują) ──"
+  exit 1
+fi
+exit 0
