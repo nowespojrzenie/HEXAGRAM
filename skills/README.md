@@ -2,7 +2,7 @@
 
 [![skills.sh](https://skills.sh/b/nowespojrzenie/HEXAGRAM)](https://skills.sh/nowespojrzenie/HEXAGRAM)
 
-**Nine skills in two families.** Five carry a method that stands on its own; two carry an interpretive layer and say so from the first line.
+**Nine skills in two families.** Seven carry a method that stands on its own; two carry an interpretive layer and say so from the first line.
 
 ```sh
 npx skills add nowespojrzenie/HEXAGRAM

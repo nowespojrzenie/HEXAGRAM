@@ -33,7 +33,7 @@ Built in ~6 weeks of daily human–AI practice. Everything here has been through
 
 ## Getting started
 
-> **Read [`START_TU.md` §8](START_TU.md) first** — HEXAGRAM needs an assistant with terminal and file access (Mode A, full). For models without a terminal there is Mode B (lite): paste any file from [`skills/`](skills/) and get the discipline without the engines. Five standalone skills, installable with `npx skills add nowespojrzenie/HEXAGRAM` — see [`skills/README.md`](skills/README.md).
+> **Read [`START_TU.md` §8](START_TU.md) first** — HEXAGRAM needs an assistant with terminal and file access (Mode A, full). For models without a terminal there is Mode B (lite): paste any file from [`skills/`](skills/) and get the discipline without the engines. Nine skills, installable with `npx skills add nowespojrzenie/HEXAGRAM` — see [`skills/README.md`](skills/README.md).
 
 ```
 git clone <this-repo> && cd HEXAGRAM && bash wstan.sh
