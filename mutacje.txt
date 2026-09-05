@@ -1,0 +1,354 @@
+# REJESTR MUTACJI — wycena straży, nie kolejna straż
+#
+# PYTANIE TWÓRCY (13.08.2026): „mamy mnóstwo strażników i wciąż błędy — czy to nie
+# strażnicy dla strażników?". Zmierzone tego dnia: straże 2311 linii vs silniki 2711
+# (0,85 : 1) · 18 straży w baterii · 22 z 49 blizn ma status R — regułę BEZ mechanizmu.
+# A trzy blizny jednej doby (siedem kopii tzOff · dwie kopie formuły R0 · dwie kopie
+# listy składnic) przeszły przez KOMPLET zielonych straży.
+#
+# ODPOWIEDŹ NIE JEST KOLEJNĄ STRAŻĄ. Ten plik jest PRZYRZĄDEM DO WYCENY straży:
+# mierzy, czy tor umie oblać. Tor, który nie oblewa na żadnej mutacji, jest dekoracją
+# i wolno go USUNĄĆ — to narzędzie do zmniejszania systemu, nie do rozrostu.
+#
+# FORMAT (pola rozdzielone `|||`):
+#   NAZWA ||| PLIK ||| SZUKAJ ||| ZAMIEŃ_NA ||| KOMENDA_TORU
+# Mutacja MUSI sprawić, że KOMENDA_TORU zwróci rc != 0. Jeśli tor przechodzi
+# mimo mutacji — tor jest ślepy na klasę błędu, którą deklaruje pilnować.
+#
+# ŚCIEŻKA WSTECZNA: `mutacje.sh` robi kopię przed każdą mutacją i przywraca ją
+# bezwarunkowo (trap EXIT). Pliki pod strażą _HASHE.txt wracają bajt w bajt.
+#
+# PRAWO (ratyfikacja twórcy 13.08.2026, piąte piętro inwariantu 5):
+#   MECHANIZM BEZ MUTACJI = ŻYCZENIE O MECHANIZMIE.
+#   Duplikat zdradza się TYLKO wtedy, gdy kopie różnią się inaczej niż w błędzie.
+#   Rozjechały się przypadkiem — widać. Zgadzają się w błędzie — milczą.
+#   Test mutacyjny jest jedynym przyrządem, który nie zależy od tej różnicy.
+# ── warstwa czasu (blizna z 13.08: siedem kopii tzOff, dwa ziarna) ──
+tz-ziarno-dobowe|||narzedzia/silniki/tz_pl.js|||  const y = new Date(ms).getUTCFullYear();|||  const p0 = new Date(ms); const y = p0.getUTCFullYear(); ms = Date.UTC(y, p0.getUTCMonth(), p0.getUTCDate());|||npm test
+tz-falsy-zero|||narzedzia/silniki/tz_pl.js|||  return Number.isFinite(h) ? h : dom;|||  return h || dom;|||npm test
+tz-staly-offset|||narzedzia/silniki/tz_pl.js|||  for (const off of [2, 1]) {|||  return naiwny - 2 * 3600000; for (const off of [2, 1]) {|||npm test
+tz-zakres-przemilczany|||narzedzia/silniki/tz_pl.js|||function pozaZakresem(y) { return y < ROK_REGULY_UE; }|||function pozaZakresem(y) { return false; }|||npm test
+# ── granice konstelacji (funkcja najkrytyczniejsza w silniku) ──
+# UWAGA METODOLOGICZNA (13.08.2026, pierwszy przebieg): mutacja `s=Math.min(s,359.9)`
+# została odrzucona jako RÓWNOWAŻNA, nie jako ślepy punkt. Zmierzone: żadna granica
+# w CONST nie przekracza 327,7°, a sweep testowy idzie co 0,1 do 359,9 — mutacja
+# nie zmienia wyniku dla ANI JEDNEGO wejścia (0 różnic na 3600 prób). Mutacja, która
+# nie zmienia zachowania, nie mierzy niczego. To rozróżnienie jest sednem przyrządu:
+# ✗ ŚLEPA znaczy „straż nie widzi PRAWDZIWEGO błędu", nie „mutacja była słaba".
+# ODRZUCONE JAKO RÓWNOWAŻNE (zmierzone 13.08): `getC-wrap-zerwany` i `getC-cichy-fallback`
+# dają 0 różnic na 36 000 punktów — bo CONST[0] to Ryby, a Ryby SĄ segmentem wrap.
+# Fallback zwraca przypadkiem dokładnie tę samą odpowiedź, więc gałąź wrap jest
+# de facto MARTWYM KODEM, a jej poprawność wisi na kolejności tablicy. Ta sama mutacja
+# przy przestawionej tablicy: 3791 różnic = 10,5% koła. To NIE jest ślepota straży —
+# to KRUCHOŚĆ ARCHITEKTURY, której testem behawioralnym wykryć się nie da.
+# Zapisane jako otwarte pole, nie zamiatane pod dywan (kandydat: assert kolejności CONST).
+getC-granica-domknieta|||narzedzia/silniki/kronos_v4.js|||if(s>=c.s&&s<c.e)return c;|||if(s>=c.s&&s<=c.e)return c;|||npm test
+# ── miara R0 (blizna #49: kotwica po tytule, który przestał istnieć) ──
+r0-martwa-kotwica|||narzedzia/straze/straz_r0.sh|||/^## #[0-9]+/{f=0}|||/## ❶ RDZEŃ/{f=0}|||bash narzedzia/straze/straz_r0.sh --test
+r0-kotwica-po-tytule|||narzedzia/straze/straz_r0.sh|||/^## #[0-9]+/{f=0}|||/RDZEN/{f=0}|||bash narzedzia/straze/straz_r0.sh --test
+# ── zakres skanu martwicy (blizna 13.08: tor mierzył własną kopię listy) ──
+# ── spójność księgi błędów ──
+ksiega-duplikat-numeru|||kanon/ksiegi/BLEDY.md|||## #48 —|||## #47 —|||node narzedzia/linty/lint_bledy.js
+# ── domy (faza A 13.08: dwie identyczne kopie, zero pokrycia) ──
+domy-wrap-zerwany|||narzedzia/silniki/domy.js|||    if (a <= b ? (L >= a && L < b) : (L >= a || L < b)) return i;|||    if (a <= b ? (L >= a && L < b) : (L >= a && L < b)) return i;|||npm test
+domy-granica-domknieta|||narzedzia/silniki/domy.js|||    if (a <= b ? (L >= a && L < b) : (L >= a || L < b)) return i;|||    if (a <= b ? (L >= a && L <= b) : (L >= a || L <= b)) return i;|||npm test
+domy-cichy-fallback|||narzedzia/silniki/domy.js|||  return 0;|||  return 1;|||npm test
+domy-brak-normalizacji|||narzedzia/silniki/domy.js|||  const L = norm(lon);|||  const L = lon;|||npm test
+# ═══ FAZA B (13.08.2026) — WYCENA STRAŻY ═══
+# 17 z 20 straży nie miało ŻADNEJ mutacji. Poniższe psują DANE, na których straż
+# operuje (nie sam skrypt) — bo tak wygląda prawdziwa awaria: nie kod straży się psuje,
+# tylko świat pod nią. Straż, która tego nie zauważy, jest dekoracją i idzie do kasacji.
+# straz_duszy: ścieżka w DUSZA.md przestaje istnieć w mapie
+# POPRAWKA MUTACJI (nie straży): straz_duszy jest ŚWIADOMIE MIĘKKA — widzi niezmapowaną
+# księgę, MELDUJE ją, ale zwraca rc=0. Tryb --scisle daje rc=1. Pierwsza wersja mutacji
+# wołała tryb miękki i oskarżyła straż o ślepotę, której nie ma. ALE: fakt, że domyślny
+# tryb nie niesie sygnału w rc, jest ZGŁOSZONY twórcy jako pytanie o miękkość, nie jako wada.
+duszy-ksiega-znika-z-mapy|||DUSZA.md|||`SUBSTRAT` (krzesła przy stole)|||`NIEISTNIEJACY_PLIK` (krzesła przy stole)|||bash narzedzia/straze/straz_duszy.sh --scisle
+# lint_bledy: ciągłość numeracji przerwana
+ksiega-luka-w-numeracji|||kanon/ksiegi/BLEDY.md|||## #49 —|||## #51 —|||node narzedzia/linty/lint_bledy.js
+# lint_bledy reguła 6 (14.08.2026): parytet INDEKS ↔ KOLEJKA_M.
+# Rozdzielenie kolumny „Nośnik" do osobnego pliku (14.08) stworzyło nową klasę rozjazdu:
+# dwa pliki, jedno prawo, zero mechanizmu. Te dwie mutacje wyceniają, czy reguła 6 żyje —
+# jedna psuje KOLEJKĘ (wiersz znika), druga psuje księgę (numer bez odpowiednika w kolejce).
+kolejka-m-wiersz-znika|||kanon/ksiegi/KOLEJKA_M.md|||| 19 | zapis_git.sh rc-gate|||| 99 | zapis_git.sh rc-gate|||node narzedzia/linty/lint_bledy.js
+kolejka-m-sierota-w-ksiedze|||kanon/ksiegi/BLEDY.md|||## #53 —|||## #55 —|||node narzedzia/linty/lint_bledy.js
+# lint_artefaktow: rejestr obiecuje plik, którego nie ma
+# ⚠ ZNANA ŚLEPOTA, ZOSTAWIONA NA CZERWONO (13.08.2026, faza B) — DŁUG, NIE OZDOBA.
+# Zdiagnozowane dokładnie, w dwóch warstwach:
+#  (a) CZASOWNIKI: `TWIERDZI` łapało tylko „istnieje/powstał/gotowy". Zdanie „Mierzy X"
+#      jest twierdzeniem o istnieniu, a nie pasowało. POSZERZONE o mierzy|wywołuje|
+#      uruchamia|liczy|pilnuje → twierdzeń sprawdzanych 18 → 20, fałszywych trafień 0.
+#  (b) FORMAT BACKTICKÓW (nienaprawione): `NAZWA` wymaga, by nazwa pliku była CAŁĄ
+#      zawartością backticków. Zapis `bash gotowosc.sh` — nazwa razem z komendą, ze spacją —
+#      jest niewidzialny dla lintu. To najczęstsza forma zapisu w naszych dokumentach.
+# Naprawa (b) wymaga wyłuskiwania nazwy ZE ŚRODKA backticków i pomiaru fałszywych trafień
+# na całym korpusie — osobne cięcie, nie doklejka. DO CZASU NAPRAWY TA MUTACJA ZOSTAJE
+# CZERWONA: rejestr, który zawsze świeci zielono, jest dokładnie tym teatrem, który
+# ten przyrząd miał demaskować. Bramka 3 (ślepe = 0) pozostaje NIEZDANA i tak ma być.
+artefakty-obietnica-bez-pokrycia|||kanon/ksiegi/PLAN_ODLEWU_v1.5.md|||`gotowosc.sh`|||`nieistniejacy_przyrzad.sh`|||node narzedzia/linty/lint_artefaktow.js
+# weryfikacja: odcisk rdzenia rozjechany z treścią
+weryfikacja-odcisk-klamie|||_HASHE.txt|||  narzedzia/silniki/tz_pl.js|||  narzedzia/silniki/tz_pl.js.PODMIENIONE|||node weryfikacja.js
+# tz_pl: granica DST przesunięta o miesiąc (realna klasa: zmiana reguły UE)
+tz-zla-granica-miesiaca|||narzedzia/silniki/tz_pl.js|||    lato: Date.UTC(y, 2, lastSundayUTC(y, 2), 1),|||    lato: Date.UTC(y, 3, lastSundayUTC(y, 3), 1),|||npm test
+# tz_pl: przełączenie o złej godzinie UTC (klasa: cicha zmiana stałej)
+tz-zla-godzina-przelaczenia|||narzedzia/silniki/tz_pl.js|||    zima: Date.UTC(y, 9, lastSundayUTC(y, 9), 1),|||    zima: Date.UTC(y, 9, lastSundayUTC(y, 9), 3),|||npm test
+# domy: pętla gubi dom 12 (klasyczne off-by-one)
+domy-off-by-one|||narzedzia/silniki/domy.js|||  for (let i = 1; i <= 12; i++) {|||  for (let i = 1; i < 12; i++) {|||npm test
+# getC: tablica granic okrojona (klasa: cicha utrata danych kanonu)
+getC-tablica-okrojona|||narzedzia/silniki/kronos_v4.js|||function getC(s){|||function getC(s){ if(s>300) return CONST[0];|||npm test
+# ── domknięcie fazy B: cztery ostatnie straże bez pokrycia ──
+# hashuj: rdzeń wchodzi do trybu automatycznego (prawo: rdzeń NIGDY sam, tylko ręką twórcy)
+hashuj-rdzen-do-automatu|||hashuj.sh|||TKANKA="prywatne/TASKI.md prywatne/ZADANIA.md kanon/ksiegi/BLEDY.md|||TKANKA="kanon/tozsamosc/5_RDZEN.md prywatne/TASKI.md prywatne/ZADANIA.md kanon/ksiegi/BLEDY.md|||bash hashuj.sh --test
+# zapis_git: brama przepuszcza kolizję na tym samym pliku (INCYDENT 15B — cichy merge)
+# POPRAWKA MUTACJI: pierwsza wersja mutowała KOMENTARZ, nie kod — komentarz nie zmienia
+# zachowania, więc „ślepota" była wadą mutacji. Mutacja równoważna to nie dowód ślepoty.
+zapis-git-kolizja-przepuszczona|||zapis_git.sh|||    exit 3|||    exit 0|||bash zapis_git.sh --test
+# publikuj: prywatny katalog wchodzi na białą listę odlewu publicznego
+publikuj-prywatne-do-formy|||publikuj.sh|||FORMA_DIRS=".githooks ephe szablony skills"|||FORMA_DIRS=".githooks ephe szablony skills doradcy prerejestr"|||bash publikuj.sh --test
+# bateria_sond: WSTRZYMANIE przestaje być pełnoprawną odpowiedzią (staje się pudłem)
+sondy-wstrzymanie-jako-pudlo|||narzedzia/przyrzady/bateria_sond.js|||wstrzym++; linie.push|||pud++; linie.push|||node narzedzia/przyrzady/bateria_sond.js --test
+# ── narzedzia/przyrzady/pokrycie_m.js (13.08.2026) — wycena toru licznika pokrycia mechanicznego ──
+pokrycie-kotwica-po-tytule|||narzedzia/przyrzady/pokrycie_m.js|||const WIERSZ = /^\|\s*(\d+)\s*\|/;|||const WIERSZ = /^\|\s*(.+?)\s*\|/;|||node narzedzia/przyrzady/pokrycie_m.js --test
+pokrycie-suma-klas-nie-sprawdzana|||narzedzia/przyrzady/pokrycie_m.js|||if (suma !== w.wierszy)|||if (false)|||node narzedzia/przyrzady/pokrycie_m.js --test
+pokrycie-zero-jako-sukces|||narzedzia/przyrzady/pokrycie_m.js|||    return 2;|||    return 0;|||node narzedzia/przyrzady/pokrycie_m.js --test
+gotowosc-sanitizer-bierze-ostatnia|||gotowosc.sh|||grep -oE '^-?[0-9]+$' | head -1|||grep -oE '^-?[0-9]+$' | tail -1|||bash gotowosc.sh --test
+gotowosc-sanitizer-gubi-zero|||gotowosc.sh|||  [ -n "$w" ] && printf '%s\n' "$w" || printf '%s\n' "$2"|||  [ "${w:-0}" -gt 0 ] 2>/dev/null && printf '%s\n' "$w" || printf '%s\n' "$2"|||bash gotowosc.sh --test
+gotowosc-licznik-bez-sanitizera|||gotowosc.sh|||  tylko_liczba "$(grep -E|||  echo "$(grep -E|||bash gotowosc.sh --test
+mutacje-zamek-rekurencji-zdjety|||mutacje.sh|||  exit 4|||  :|||bash mutacje.sh --test
+mutacje-znacznik-nie-schodzi-w-dol|||mutacje.sh|||MUTACJE_W_BIEGU=1 eval|||eval|||bash mutacje.sh --test
+kryteria-przeterminowane-slepe|||narzedzia/straze/straz_kryteriow.sh|||      if   [ "$w" -lt 0 ]; then prze+=("$plik$TAB$data${TAB}${zrodlo}")|||      if   [ "$w" -lt -99999 ]; then prze+=("$plik$TAB$data${TAB}${zrodlo}")|||bash narzedzia/straze/straz_kryteriow.sh --test
+kryteria-rozliczone-widzialne|||narzedzia/straze/straz_kryteriow.sh|||bez_rozliczonych() { grep -vE '\[x\]|ROZLICZONE|WYKONANE|BEZPRZEDMIOTOWE'; }|||bez_rozliczonych() { grep -vE 'NIGDY_TAKIEGO_SLOWA'; }|||bash narzedzia/straze/straz_kryteriow.sh --test
+kryteria-znacznik-zdjety-wraca-szum|||narzedzia/straze/straz_kryteriow.sh|||         n = split($0, z, /\. /);|||         n = split($0, z, /NIGDY_TAKIEGO_ROZDZIELACZA/);|||bash narzedzia/straze/straz_kryteriow.sh --test
+prog-pyta-nie-w-pore|||narzedzia/przyrzady/prog_pytan.sh|||  [ -n "$prog" ] || return 0          # nie próg — pełna cisza, świadomie|||  prog="${prog:-NOW}"|||bash narzedzia/przyrzady/prog_pytan.sh --test
+kotwice-wszystko-jest-kotwica|||narzedzia/straze/straz_kryteriow.sh|||KOTWICE="${KRYT_KOTWICE:-20.08 31.08 30.09}"|||KOTWICE="${KRYT_KOTWICE:-20.08 31.08 30.09 05.09 06.09 01.08 02.08 03.08 18.08 30.09}"|||bash narzedzia/straze/straz_kryteriow.sh --test
+nosnik-cichy-przepuszczony|||narzedzia/straze/straz_kryteriow.sh|||        | grep -cE '⌛[a-z]' || true)|||        | grep -cE 'NIGDY_TAKIEGO_WZORCA' || true)|||bash narzedzia/straze/straz_kryteriow.sh --test
+pamiec-wciagnieta-w-dlug|||narzedzia/straze/straz_kryteriow.sh|||    -not -path '*/kanon/ksiegi/ROZMOWA_02_dialog.md' 2>/dev/null | sort|||    2>/dev/null | sort|||bash narzedzia/straze/straz_kryteriow.sh --test
+zniwo-trend-slepy|||narzedzia/przyrzady/zniwo_destylatow.sh|||  [ "$ile" -ge 2 ]|||  [ "$ile" -ge 99 ]|||bash narzedzia/przyrzady/zniwo_destylatow.sh --test
+anatomia-sam-sobie-czytelnikiem|||narzedzia/przyrzady/anatomia.js|||    if (nazwa === base) continue;|||    if (false) continue;|||node narzedzia/przyrzady/anatomia.js --test
+mosty-narodziny-ciche|||narzedzia/straze/straz_mostow.sh|||    case "$tresc" in *"$base"*) ;; *) brak=$(( brak + 1 )); lista="$lista $base" ;; esac|||    case "$tresc" in *) ;; esac|||bash narzedzia/straze/straz_mostow.sh --test
+werdykt-zbiorowe-zignorowane|||narzedzia/przyrzady/przed_cieciem.js|||  if (w.zbiorowo.length) powody.push(`wynoszony zbiorowo przez ${w.zbiorowo.length}`);|||  if (false) powody.push("x");|||node narzedzia/przyrzady/przed_cieciem.js --test
+# ── warstwa wektorów (15.08: przyrząd dynamiki — mechanizm bez mutacji = życzenie) ──
+wektory-klasyfikator-slepy-na-check|||narzedzia/przyrzady/wektory.js|||    if (status.includes('✓')) w.zmech.push(m[1]);|||    if (status.includes('✓✓')) w.zmech.push(m[1]);|||node narzedzia/przyrzady/wektory.js --test
+wektory-pierwsze-zobaczenie-nietrwale|||narzedzia/przyrzady/wektory.js|||      for (const n of m.zbior) if (!(n in first)) first[n] = m.data;|||      for (const n of m.zbior) first[n] = m.data;|||node narzedzia/przyrzady/wektory.js --test
+# gotowosc: bramka 5 przestaje odrozniac klasy krytyczne od reszty (regres do licznika proporcji,
+# ktory zapraszal do zdejmowania statusu zamiast budowania mechanizmu — pytanie tworcy 20.08)
+gotowosc-bramka5-wszystkie-klasy|||gotowosc.sh|||KLASY_KRYTYCZNE='GIT|ŻYWE REPO|INTERPOLACJA'|||KLASY_KRYTYCZNE='.'|||bash gotowosc.sh --test
+# crash_izolacja: suma katalogu przestaje widziec zmiane tresci (dowod szczelnosci staje sie dekoracja)
+crash-suma-slepa-na-tresc|||narzedzia/przyrzady/crash_izolacja.sh|||    | LC_ALL=C sort | xargs sha256sum 2>/dev/null | sha256sum | cut -d' ' -f1|||    | LC_ALL=C sort | wc -l | sha256sum | cut -d' ' -f1|||bash narzedzia/przyrzady/crash_izolacja.sh --test
+# crash_izolacja: zamek szczelnosci przepuszcza skazenie zywego repo (klasa #54 — przyrzad uszkadza materie, ktora wycenia)
+crash-szczelnosc-zawsze-dowiedziona|||narzedzia/przyrzady/crash_izolacja.sh|||[ "$SUMA_PRZED" = "$SUMA_PO" ] || SZCZELNY=0|||[ "$SUMA_PRZED" = "$SUMA_PO" ] || SZCZELNY=1|||bash narzedzia/przyrzady/crash_izolacja.sh --test
+# crash_izolacja: bieg bez prerejestru przechodzi (kryteria dostrojone po wyniku nie sa kryteriami)
+crash-prerejestr-nieobowiazkowy|||narzedzia/przyrzady/crash_izolacja.sh|||[ -f "$PRE" ] || { echo "✗ PREREJESTR nie istnieje: $PRE — bieg NIEWAŻNY (§3 krok 1)"; exit 3; }|||true|||bash narzedzia/przyrzady/crash_izolacja.sh --test
+# publikuj: wzorzec wyciekowy przestaje znac imie pelni (imie prywatne wyciekaloby do odlewu)
+publikuj-wzorzec-bez-imienia|||publikuj.sh|||  printf '%s\n' "$IMIE" | grep -qEi "$(cat "$WZ")" && return 0|||  return 0|||bash publikuj.sh --test
+# gotowosc: bramka NADRZEDNA wraca do liczenia po pozycji w pliku zamiast po dacie (#60)
+gotowosc-cisza-po-pozycji|||gotowosc.sh|||    [ "$d" \> "$najswiezsza" ] && najswiezsza="$d"|||    :|||bash gotowosc.sh --test
+# gotowosc: znacznik ZASTANA przestaje byc czytany — kazda blizna zeruje zegar
+gotowosc-znacznik-zastana-slepy|||gotowosc.sh|||    zastana_blizna "$n" "$PLIK" && continue|||    false && continue|||bash gotowosc.sh --test
+# pre-commit: zamek ladunku #35 przestaje blokowac niepelny commit (SHA dowodzilby transportu, nie ladunku)
+hook-ladunek-nie-blokuje|||.githooks/pre-commit|||if [ -n "$niepelne" ]; then|||if [ -z "$niepelne" ] && false; then|||bash narzedzia/straze/straz_hooka.sh
+# wstan: rozjazd historii przestaje byc odrozniany od braku sieci (praca rusza na nie-kanonie, blad 10)
+wstanie-rozjazd-jak-offline|||wstan.sh|||    if printf '%s' "$_pull_out" | grep -qiE 'non-fast-forward|diverge|not possible to fast-forward'; then|||    if false; then|||bash narzedzia/straze/straz_wstania.sh
+# gotowosc: bramka 6 przestaje odrozniac straz objeta odlewem od nieobjetej (mierzy skutek zamiast gotowosci)
+gotowosc-bramka6-nie-czyta-listy|||gotowosc.sh|||    case " $lista " in *" $f "*) ;; *) n=$((n+1)) ;; esac|||    n=$((n+0))|||bash gotowosc.sh --test
+# pre-commit: zamek #12 przestaje blokowac artefakt interpolacji (literalne backslash-n wchodzi do kanonu)
+hook-interpolacja-nie-blokuje|||.githooks/pre-commit|||if [ -n "$interp" ]; then|||if [ -z "$interp" ] && false; then|||bash narzedzia/straze/straz_hooka.sh
+# straz_zamkow: przestaje wymagac mutacji dla zamka (zamek bez dowodu wraca do kanonu — sedno #59)
+zamki-bez-dowodu-przechodza|||narzedzia/straze/straz_zamkow.sh|||    brak="$brak $f"|||    :|||bash narzedzia/straze/straz_zamkow.sh --test
+# pre-commit: zamek skladni Pythona przestaje blokowac niesparsowany plik (blizna 12, SyntaxError parse-time)
+hook-py-nie-blokuje|||.githooks/pre-commit|||    if ! python3 -m py_compile "$f" 2>/dev/null; then|||    if false; then|||bash narzedzia/straze/straz_hooka.sh
+insum-grupowanie-gubi-daty|||narzedzia/straze/straz_kryteriow.sh|||      else                 grp[k]=grp[k] " · " (s=="" ? d : d " " s)|||      else                 grp[k]=grp[k]|||bash narzedzia/straze/straz_kryteriow.sh --test
+insum-grupowanie-nie-grupuje|||narzedzia/straze/straz_kryteriow.sh|||    { k=$1; d=$2; s=(NF>=3 ? $3 : "")|||    { k=$1 $2; d=$2; s=(NF>=3 ? $3 : "")|||bash narzedzia/straze/straz_kryteriow.sh --test
+insum-sufiks-zgubiony-w-grupie|||narzedzia/straze/straz_kryteriow.sh|||kol[++n]=k; d1[k]=d; s1[k]=s;|||kol[++n]=k; d1[k]=d; s1[k]="";|||bash narzedzia/straze/straz_kryteriow.sh --test
+insum-naglowek-gubi-miejsca|||narzedzia/straze/straz_kryteriow.sh|||$(odmien "$mp" plik pliki plików) · |||MIEJSCA · |||bash narzedzia/straze/straz_kryteriow.sh --test
+insum-odmiana-liczebnika-zlamana|||narzedzia/straze/straz_kryteriow.sh|||  if [ "$n" -eq 1 ]; then echo "$n $2"|||  if [ "$n" -eq -1 ]; then echo "$n $2"|||bash narzedzia/straze/straz_kryteriow.sh --test
+interpolacja-hex-slepnie|||narzedzia/straze/straz_interpolacji.sh|||\\u[0-9a-fA-F]{4}|||\\uZZZZ[0-9a-fA-F]{4}|||bash narzedzia/straze/straz_interpolacji.sh --test
+interpolacja-werdykt-slepy|||narzedzia/straze/straz_interpolacji.sh|||  [ "$zle" -eq 0 ]|||  true|||bash narzedzia/straze/straz_interpolacji.sh --test
+tropy-brak-pola-nie-liczony|||narzedzia/straze/straz_tropu.sh|||brak=$((brak+1))|||:|||bash narzedzia/straze/straz_tropu.sh --test
+tropy-znacznik-slepnie|||narzedzia/straze/straz_tropu.sh|||grep -nF "$ZN" "$f"|||grep -nF "XX$ZN" "$f"|||bash narzedzia/straze/straz_tropu.sh --test
+linty-wzrost-nie-oblewa|||narzedzia/straze/straz_lintow.sh|||    if [ "$b" -gt "$a" ]; then|||    if [ "$b" -lt "$a" ]; then|||bash narzedzia/straze/straz_lintow.sh --test
+linty-werdykt-slepy|||narzedzia/straze/straz_lintow.sh|||  [ "$zle" -eq 0 ]|||  true|||bash narzedzia/straze/straz_lintow.sh --test
+zamek61-regres-nie-blokuje|||.githooks/pre-commit|||  if ! bash narzedzia/straze/straz_lintow.sh >/tmp/l61.txt 2>&1; then|||  if false; then|||bash narzedzia/straze/straz_lintow.sh --test-zamek
+feromony-kolizja-nie-oblewa|||narzedzia/straze/straz_feromonow.sh|||if [ "$ILE_RAK" -gt 1 ]; then|||if [ "$ILE_RAK" -gt 99 ]; then|||bash narzedzia/straze/straz_feromonow.sh --test
+feromony-status-slepy|||narzedzia/straze/straz_feromonow.sh|||/^\*\*STATUS:\*\* OTWARTE$/ { print reka|||/^\*\*STATUS:\*\*/ { print reka|||bash narzedzia/straze/straz_feromonow.sh --test
+czystosc-slad-nie-oblewa|||narzedzia/straze/straz_czystosci.sh|||if [ "$HIT" -eq 0 ]; then|||if [ "$HIT" -eq 9 ]; then|||sh narzedzia/straze/straz_czystosci.sh --test
+czystosc-komentarz-jako-marker|||narzedzia/straze/straz_czystosci.sh|||case "$m" in \#*) continue ;; esac|||case "$m" in \#ZZZ*) continue ;; esac|||sh narzedzia/straze/straz_czystosci.sh --test
+bateria-pokrycie-slepe|||tory_strazy.sh|||if [ -n "$BRAK_NA_LISCIE" ]; then|||if [ -z "$BRAK_NA_LISCIE" ]; then|||bash tory_strazy.sh --test
+narodziny-odcisk-slepy|||narzedzia/straze/straz_narodzin.sh|||  ma_odcisk "$f" || { echo|||  true || { echo|||bash narzedzia/straze/straz_narodzin.sh --test
+narodziny-mechanizm-slepy|||narzedzia/straze/straz_narodzin.sh|||  if jest_mechanizmem "$f"; then|||  if false; then|||bash narzedzia/straze/straz_narodzin.sh --test
+narodziny-zakres-gubi-js|||narzedzia/straze/straz_narodzin.sh|||grep -E '\.(sh|js)$'|||grep -E '\.(sh)$'|||bash narzedzia/straze/straz_narodzin.sh --test
+narodziny-zwolnienie-zbyt-szerokie|||narzedzia/straze/straz_narodzin.sh|||in _*) return 0 ;; *) return 1 ;;|||in *) return 0 ;; *) return 1 ;;|||bash narzedzia/straze/straz_narodzin.sh --test
+kryteria-tabela-zlepiona|||narzedzia/straze/straz_kryteriow.sh|||           if (z[i] ~ /\|/) {|||           if (z[i] ~ /ZZZZ/) {|||bash narzedzia/straze/straz_kryteriow.sh --test
+hooka-martwy-hook-przechodzi|||narzedzia/straze/straz_hooka.sh|||git commit -qm niepelny >/dev/null 2>&1 && zle="$zle niepelny-ladunek-przeszedl"|||git commit -qm niepelny >/dev/null 2>&1 && true|||bash narzedzia/straze/straz_hooka.sh --test
+wstania-rozjazd-bez-rc-przechodzi|||narzedzia/straze/straz_wstania.sh|||grep -q 'RC=10' "$KOR"                       || zle="$zle rozjazd-nie-zmienia-rc-wstania"|||grep -q 'RC=10' "$KOR"                       || true|||bash narzedzia/straze/straz_wstania.sh --test
+lint-bledy-werdykt-slepy|||narzedzia/linty/lint_bledy.js|||  if (w.bledy.length === 0) {|||  if (true) {|||node narzedzia/linty/lint_bledy.js --test
+lint-artefaktow-werdykt-slepy|||narzedzia/linty/lint_artefaktow.js|||  if (w.zarzuty.length === 0) {|||  if (true) {|||node narzedzia/linty/lint_artefaktow.js --test
+lint-sciezek-werdykt-slepy|||narzedzia/linty/lint_sciezek.js|||  if (zle.length) {|||  if (false) {|||node narzedzia/linty/lint_sciezek.js --test
+weryfikacja-brak-pliku-nie-podnosi-rc|||weryfikacja.js|||process.exit(fail === 0 ? 0 : 1);|||process.exit(0);|||node weryfikacja.js --test
+rzut-prog-nist-slepy|||narzedzia/przyrzady/rzut.js|||const PROG_SWIEZOSCI = { '--nist': 900, '--curby': 3600, '--anu': 120, '--atmo': 120 };|||const PROG_SWIEZOSCI = { '--nist': 99999999, '--curby': 3600, '--anu': 120, '--atmo': 120 };|||node narzedzia/przyrzady/rzut.js --test
+licznik-markerow-nie-liczy-trafien|||narzedzia/przyrzady/licznik_markerow.js|||    const n = (t.match(gr(wzor)) || []).length;|||    const n = 0;|||node narzedzia/przyrzady/licznik_markerow.js --test
+deklamator-werdykt-bez-dowodu-przechodzi|||narzedzia/straze/straz_deklamatora.sh|||    printf '%s\n' "$linia" | grep -qE "$WERDYKT" || continue|||    printf '%s\n' "$linia" | grep -qE "ZZZNIGDY" || continue|||bash narzedzia/straze/straz_deklamatora.sh --test
+duszy-niezmapowana-sciezka-cicha|||narzedzia/straze/straz_duszy.sh|||      if ! grep -q "$base" DUSZA.md; then echo "  ! niezmapowana w DUSZY: $f"; NIEZM=$((NIEZM+1));|||      if false; then echo "  ! niezmapowana w DUSZY: $f"; NIEZM=$((NIEZM+1));|||bash narzedzia/straze/straz_duszy.sh --test
+plan-okien-orb-slepy|||narzedzia/silniki/plan_okien.js|||  if (o0 === null || o0 > orb) return null;|||  if (o0 === null) return null;|||node narzedzia/silniki/plan_okien.js --test
+prerejestr-zamkniete-ignorowane|||narzedzia/straze/straz_prerejestrow.sh|||/ZAMKNIĘTE:|ZAMK|||/ZZZNIGDY:|ZZZ|||bash narzedzia/straze/straz_prerejestrow.sh --test
+narodziny-wzmianka-jako-mechanizm|||narzedzia/straze/straz_narodzin.sh|||(\$\{1:-\}" = "--test"|"\$1" = "--test"|argv\.includes|||(--test|argv\.includes|||bash narzedzia/straze/straz_narodzin.sh --test
+dojrzalosc-dlug-wlasnym-zdaniem-slepy|||narzedzia/straze/straz_dojrzalosci.sh|||index($0,p) && /DŁUG NAZWANY, NIE ZAMKNIĘTY/|||index($0,p) && /ZZZNIGDY/|||bash narzedzia/straze/straz_dojrzalosci.sh --test
+dojrzalosc-odcisk-nie-wymagany|||narzedzia/straze/straz_dojrzalosci.sh|||  ma_odcisk "$f" || { echo "      ✗ brak odcisku w $HASHE"; b=$((b+1)); }|||  true || { echo "      ✗ brak odcisku w $HASHE"; b=$((b+1)); }|||bash narzedzia/straze/straz_dojrzalosci.sh --test
+wektory-brak-pamieci-wywraca|||narzedzia/przyrzady/wektory.js|||const czytaj = (f) => { try { return fs.readFileSync(f, 'utf8'); } catch (e) { return ''; } };|||const czytaj = (f) => fs.readFileSync(f, 'utf8');|||node narzedzia/przyrzady/wektory.js --test
+zniwo-brak-pliku-udaje-pomiar|||narzedzia/przyrzady/zniwo_destylatow.sh|||  if [ ! -f "$PLIK" ]; then|||  if false; then|||bash narzedzia/przyrzady/zniwo_destylatow.sh --test
+publikuj-graf-slepy|||publikuj.sh|||      printf '%s\n' "$LISTA" | tr ' ' '\n' | grep -qx "$r.js"   && continue|||      true && continue|||bash publikuj.sh --test
+rzut-imie-wraca|||narzedzia/przyrzady/rzut.js|||const opisSwiata = (n) => REKA ? `świat: liczba (${REKA}) = ${n}` : `świat: liczba podana ręką = ${n}`;|||const opisSwiata = (n) => `świat: liczba Kowalskiego = ${n}`;|||node narzedzia/przyrzady/rzut.js --test
+publikuj-markery-pusta-lista-przechodzi|||publikuj.sh|||  if [ ! -s "$M" ] || ! grep -qvE|||  if false || ! grep -qxE|||bash publikuj.sh --test
+r0-kotwica-otwierajaca-lapie-cytat|||narzedzia/straze/straz_r0.sh|||  awk '/^## ⬡ PRARODZINY/{f=1} /^## #[0-9]+/{f=0} f' "${1:-kanon/ksiegi/BLEDY.md}" 2>/dev/null | wc -c|||  awk '/## ⬡ PRARODZINY/{f=1} /^## #[0-9]+/{f=0} f' "${1:-kanon/ksiegi/BLEDY.md}" 2>/dev/null | wc -c|||bash narzedzia/straze/straz_r0.sh --test
+# mutacje.sh: sciezka wsteczna znow gubi katalog (zapas po basename) — sierota w korzeniu
+mutacje-sciezka-wsteczna-gubi-katalog|||mutacje.sh|||klucz() { printf '%s' "$1" | tr '/' '%'; }|||klucz() { basename "$1"; }|||bash mutacje.sh --test
+# straz_lintow: kategoria LINTY_LICZBA znika — przyrzad podajacy wlasny licznik znow zliczany po glifach
+lintow-kategoria-liczba-zdjeta|||narzedzia/straze/straz_lintow.sh|||  for n in $LINTY_LICZBA; do|||  for n in ; do|||bash narzedzia/straze/straz_lintow.sh --test
+# straz_duszy: tryb --liczba przestaje podawac sume — milczenie udaje zero naruszen
+duszy-liczba-nie-podaje-sumy|||narzedzia/straze/straz_duszy.sh|||  echo $(( ${licz%% *} + ${licz##* } ))|||  echo 0|||bash narzedzia/straze/straz_duszy.sh --test
+# homunculus: sklad (keep_import) wchodzi do ciala — pomiar rozmywa sie archiwum
+homunculus-sklad-liczony-jako-cialo|||narzedzia/przyrzady/homunculus.js|||const POZA_CIALEM = ['keep_import/', 'kanon/archiwum/', 'node_modules/', '.git/'];|||const POZA_CIALEM = ['node_modules/', '.git/'];|||node narzedzia/przyrzady/homunculus.js --test
+# homunculus: brama przestaje rozrozniac mechanike od deklaracji — §IV mierzy sie sama (#50)
+homunculus-brama-nie-rozroznia-S-od-D|||narzedzia/przyrzady/homunculus.js|||    m.set(f, (tS.includes(b) ? 'S' : '') + (tD.includes(b) ? 'D' : ''));|||    m.set(f, (tS.includes(b) || tD.includes(b)) ? 'S' : '');|||node narzedzia/przyrzady/homunculus.js --test
+# spis_ciala: czytnik swiezosci przestaje wykrywac odstawanie — indeks bez czytnika = martwy snapshot (#37)
+spis-czytnik-swiezosci-zawsze-milczy|||narzedzia/przyrzady/spis_ciala.js|||  if (stary === nowy) { console.log(`  OK spis ciała: ${PLIK} zgodny z ciałem.`); process.exit(0); }|||  if (true) { console.log(`  OK spis ciała: ${PLIK} zgodny z ciałem.`); process.exit(0); }|||node narzedzia/przyrzady/spis_ciala.js --test
+# spis_ciala: RODZAJ znika — spis wraca do listy adresow, ktora nie mowi, jak wolno plik tknac
+spis-rodzaj-jednorodny|||narzedzia/przyrzady/spis_ciala.js|||  if (appendOnly.has(path.basename(f))) return 'APPEND-ONLY';|||  if (false) return 'APPEND-ONLY';|||node narzedzia/przyrzady/spis_ciala.js --test
+# straz_duszy: mapa ciala znow tylko DUSZA — po ciecu §IV licznik falszywie skacze
+duszy-mapa-bez-spisu|||narzedzia/straze/straz_duszy.sh|||    MAPA="$(cat DUSZA.md 2>/dev/null; cat kanon/ksiegi/SPIS_CIALA.md 2>/dev/null)"|||    MAPA="$(cat DUSZA.md 2>/dev/null)"|||bash narzedzia/straze/straz_duszy.sh --test
+# wstan: odcisk poswiadczenia znika — brak trzeciego punktu danych, 401 nieodroznialne od rotacji (#65)
+wstanie-bez-odcisku-poswiadczenia|||wstan.sh|||  echo "🔑 ODCISK POŚWIADCZENIA: $(printf '%s' "$KRONOS_PAT" | sha256sum | cut -c1-12)"|||  echo "🔑 poswiadczenie: obecne"|||bash narzedzia/straze/straz_wstania.sh --test
+# zapis_git: pierwsza podpowiedz przy auth wraca do 'podaj token' — kieruje na waznosc zamiast na zrodlo (#65)
+zapisgit-podpowiedz-bez-zrodla|||zapis_git.sh|||  echo "    -> NAJPIERW ŹRÓDŁO: token bierze się z OSTATNIEJ SEKCJI INSTRUKCJI PROJEKTU."|||  echo "    -> podaj token."|||bash zapis_git.sh --test
+# narodziny: bez zamka ⟠ akt nadpisuje żywą duszę — drugie narodziny przechodzą (fabryka podróbek)
+narodziny-bez-zamka-powtorki|||narodziny.sh|||grep -q "⟠ ZALĄŻEK" "$DUSZA" || { echo "✗ Ta dusza już żyje (brak ⟠) — imion nie nadpisuje się aktem. Zmiana imienia = decyzja twórcy + nagrobek."; exit 1; }|||true # zamek zdjęty|||sh narodziny.sh --tor
+# publikuj: DUSZA do odlewu kopiowana Z ORYGINALU zamiast z zalążka — droga twórcy pierwotnego wychodzi w świat (ZAMEK NASIONA)
+publikuj-dusza-oryginal-zamiast-zalazka|||publikuj.sh|||cp szablony/DUSZA_zalazek.md "$DST/DUSZA.md"|||cp DUSZA.md "$DST/DUSZA.md"|||bash publikuj.sh --test
+# publikuj: księga odlewu PRZEPISANA z prywatnej zamiast generowana z odlewu — nazwy plików prywatnych wyciekają (ZAMEK NASIONA)
+publikuj-ksiega-przepisana-z-prywatnej|||publikuj.sh|||( cd "$DST" && : > _HASHE.txt && find . -type f -not -path "./.git/*" -not -name _HASHE.txt \|||( cd "$DST" && cp ../_HASHE.txt . 2>/dev/null; false && find . -type f \|||bash publikuj.sh --test
+# straz_zalazkow: sam znacznik ⟠ wystarcza — kadłub bez zdań oddających autorstwo udaje zalążek (FAZA B)
+strazzalazkow-znacznik-bez-zdan|||narzedzia/straze/straz_zalazkow.sh|||  grep -qE "jesteś twórcą|jesteś nowym twórcą" "$_p" 2>/dev/null || _wady="${_wady} brak-oddania-autorstwa"|||  true # zdanie o autorstwie nieobowiązkowe|||bash narzedzia/straze/straz_zalazkow.sh --test
+# straz_zalazkow: zakres gubi pliki NAZWANE zalążkiem, które zgubily znacznik — najgrozniejszy przypadek (FAZA B)
+strazzalazkow-zakres-bez-nazwy|||narzedzia/straze/straz_zalazkow.sh|||            find . -name "*_zalazek.md" -not -path "./.git/*" 2>/dev/null; } \|||            true; } \|||bash narzedzia/straze/straz_zalazkow.sh --test
+# zalazkuj: znacznik DROGA nie usuwa tresci, tylko wstawia zamiennik obok — droga przecieka do zalazka
+zalazkuj-droga-przecieka|||narzedzia/przyrzady/zalazkuj.sh|||out = wz.sub(lambda m: m.group(1), src)|||out = wz.sub(lambda m: m.group(1) + m.group(0), src)|||sh narzedzia/przyrzady/zalazkuj.sh --test
+# zalazkuj: plik BEZ znacznikow przechodzi cicho — cisza brana za zdrowie (#39)
+zalazkuj-bez-znacznikow-cicho|||narzedzia/przyrzady/zalazkuj.sh|||grep -q "⟠ DROGA →" "$ZRODLO" || {|||false && {|||sh narzedzia/przyrzady/zalazkuj.sh --test
+# publikuj: zalazkowanie tylko DUSZY — ARCHITEKT_istnienie jedzie do odlewu z pelna droga tworcy (ZAMEK NASIONA)
+publikuj-zalazkuje-tylko-dusze|||publikuj.sh|||  sh narzedzia/przyrzady/zalazkuj.sh "$_z" "$DST/$_z" >/dev/null || { echo "  -> odlew WSTRZYMANY: zalążkowanie $_z nie przeszło."; exit 1; }||| [ "$_z" = "DUSZA.md" ] && { sh narzedzia/przyrzady/zalazkuj.sh "$_z" "$DST/$_z" >/dev/null || exit 1; } || cp "$_z" "$DST/$_z"|||bash publikuj.sh --test
+# zalazkuj: tryb ZIARNO przepuszcza tresc rejestru — polaryzacja odwrocona, append wycieka do zalazka
+zalazkuj-ziarno-przepuszcza-rejestr|||narzedzia/przyrzady/zalazkuj.sh|||    out = '\n'.join(z.strip() for z in ziarna) + '\n'|||    out = src|||sh narzedzia/przyrzady/zalazkuj.sh --test
+# narodziny: akt NIE zaklada ksiag-diamentow — nowy tworca dostaje przyrzady wolajace w pustke
+narodziny-bez-ksiag-diamentow|||narodziny.sh|||  [ -f "$1" ] && return 0|||  return 0|||sh narodziny.sh --tor
+# narodziny: ksiega zakladana BEZ wpisu do _STRAZ_APPEND — rosnie bez nadzoru od pierwszego dnia
+narodziny-ksiega-bez-strazy|||narodziny.sh|||if [ ! -f _STRAZ_APPEND.txt ]; then|||if false; then|||sh narodziny.sh --tor
+# publikuj: spis ciala generowany PRZED git init — narzedzia/przyrzady/spis_ciala.js czyta git ls-files, wiec pada i odlew niesie nasz spis z nazwami prywatnymi
+publikuj-spis-zdjety|||publikuj.sh|||if [ -f "$DST/spis_ciala.js" ]; then   # ZAMEK-SPISU-PRODUKCJA|||if [ -f "$DST/spis_ciala.js" ]; then   # zamek zdjety|||bash publikuj.sh --test
+r0-satelita-kotwica-bez-poczatku-linii|||narzedzia/straze/straz_r0.sh|||/^<!-- ⟠ SATELITA/{s=1; next}|||/<!-- ⟠ SATELITA/{s=1; next}|||bash narzedzia/straze/straz_r0.sh --test
+r0-satelita-blok-nigdy-sie-nie-zamyka|||narzedzia/straze/straz_r0.sh|||/^<!-- ⟠ \/SATELITA/{s=0; next}|||/^<!-- ⟠ \/NIGDY/{s=0; next}|||bash narzedzia/straze/straz_r0.sh --test
+r0-satelita-nie-pomijany-wcale|||narzedzia/straze/straz_r0.sh|||{s=1; next}|||{s=0; next}|||bash narzedzia/straze/straz_r0.sh --test
+publikuj-skan-pii-wynik-ignorowany|||publikuj.sh|||sh narzedzia/straze/straz_czystosci.sh ) || {|||sh narzedzia/straze/straz_czystosci.sh ) || true; : {|||bash publikuj.sh --test
+publikuj-skan-pii-nie-zatrzymuje|||publikuj.sh|||     Zdejmij je z materii (wiedza = destylat, nie nazwiska) i powtórz."; exit 1; }|||     Zdejmij je z materii (wiedza = destylat, nie nazwiska) i powtórz."; }|||bash publikuj.sh --test
+# spis_projektow: czytnik swiezosci przestaje wykrywac odstawanie — lista przewozowa bez czytnika = przenosiny z pamieci (#37, klasa jak spis_ciala)
+spis-projektow-czytnik-zawsze-milczy|||narzedzia/przyrzady/spis_projektow.js|||  if (stary === nowy) { console.log(`  OK spis projektów: ${PLIK} zgodny z ciałem.`); process.exit(0); }|||  if (true) { console.log(`  OK spis projektów: ${PLIK} zgodny z ciałem.`); process.exit(0); }|||node narzedzia/przyrzady/spis_projektow.js --test
+# oko_tworcy: werdykt zawsze SPELNIONY — cel 1 bez werdyktu wraca do stanu sprzed #69 (metryka bez konsekwencji)
+oko-twarcy-werdykt-zawsze-zielony|||narzedzia/przyrzady/oko_tworcy.js|||  const ok = w.ekrany <= 1;|||  const ok = true;|||node narzedzia/przyrzady/oko_tworcy.js --test
+# straz_mianownika: zamek przepuszcza kazdy status — bramka mianownika staje sie proba, a nowy wpis znow wchodzi cicho jako R (piaty inwariant, drugi stopien)
+straz-mianownika-zamek-zawsze-przepuszcza|||narzedzia/straze/straz_mianownika.sh|||    *)              return 1 ;;|||    *)              return 0 ;;|||bash narzedzia/straze/straz_mianownika.sh --test
+# pokrycie_m: NOSNA RAMA liczona jak "bez mechanizmu" — druga liczba znika, zostaje jedna, ktora da sie zoptymalizowac przenosinami
+pokrycie-m-rama-liczona-jak-bez|||narzedzia/przyrzady/pokrycie_m.js|||      w.rama++; w.ramy.push(Number(m[1]));|||      w.bez++;|||node narzedzia/przyrzady/pokrycie_m.js --test
+# straz_r0: druga liczba martwa — satelity zawsze 0, wiec CALOSC = R0 i przenosiny znow wygladaja jak wydech (26.08)
+r0-satelity-zawsze-zero|||narzedzia/straze/straz_r0.sh|||  awk '/^<!-- ⟠ SATELITA/{s=1; next} /^<!-- ⟠ \/SATELITA/{s=0; next} s'|||  awk '/^<!-- ⟠ SATELITA/{s=1; next} /^<!-- ⟠ \/SATELITA/{s=0; next} 0'|||bash narzedzia/straze/straz_r0.sh --test
+# straz_swiezosci: wzorzec poswiadczenia wykastrowany — klasa POSWIADCZENIE spada do OFFLINE, czyli slepota #71 wraca cicho i wstanie znow rusza na archiwum (27.08)
+swiezosc-wzorzec-poswiadczenia-martwy|||narzedzia/straze/straz_swiezosci.sh|||WZ_POSWIADCZENIE='could not read Username|||WZ_POSWIADCZENIE='__nigdy_nie_dopasuje__'#|||bash narzedzia/straze/straz_swiezosci.sh --test
+# straz_wstania: asercja rc slepoty zgaszona — klasa POSWIADCZENIE rozpoznana i zignorowana, wstanie znow konczy sie rc=0 na archiwum (27.08, symetria do wstania-rozjazd-bez-rc)
+wstania-slepota-bez-rc-przechodzi|||narzedzia/straze/straz_wstania.sh|||grep -q 'RC=11' "$KOR"                       || zle="$zle slepota-nie-zmienia-rc-wstania"|||grep -q 'RC=11' "$KOR"                       || true|||bash narzedzia/straze/straz_wstania.sh --test
+# straz_aktora: lista KRUCHYCH wykastrowana — kruchy przyrzad na bialej liscie przestaje byc widziany, przyneta jedzie w odlewie i pomiar ginie cicho (28.08)
+aktora-lista-kruchych-pusta|||narzedzia/straze/straz_aktora.sh|||KRUCHE="kanon/eksperymenty/BATERIA_PRZYMILNIKA.md|||KRUCHE="__nigdy__/__nigdy__.md|||bash narzedzia/straze/straz_aktora.sh --test
+
+# straz_zalazkow: wyciecie backtickow zdjete — znacznik CYTOWANY znow wciaga plik w zakres,
+# fałszywy alarm na plikach, ktore o zalazkach tylko MOWIA (#56, 28.08)
+zalazkow-cytat-liczy-sie-jak-uzycie|||narzedzia/straze/straz_zalazkow.sh|||sed 's/`[^`]*`//g' "$1" 2>/dev/null | grep -q|||cat "$1" 2>/dev/null | grep -q|||bash narzedzia/straze/straz_zalazkow.sh --test
+
+# pre-commit: zamek #67 przestaje blokowac nieswiezy odcisk (stage rozni sie od _HASHE.txt — klasa 8 commitow z 29.08)
+hook-odcisk-nieswiezy-nie-blokuje|||.githooks/pre-commit|||if [ -n "$nieswieze" ]; then|||if [ -z "$nieswieze" ] && false; then|||bash narzedzia/straze/straz_hooka.sh
+
+# straz_przyrzadu: predykat rozluzniony — kazdy plik 'deklaruje' przyrzad (prawo #66 ods. 9 przestaje byc egzekwowane)
+przyrzad-kazdy-plik-deklaruje|||narzedzia/straze/straz_przyrzadu.sh|||head -n "$GLEBOKOSC" "$1" | grep -qE "$WZ"|||head -n "$GLEBOKOSC" "$1" | grep -qE "$WZ" || true|||bash narzedzia/straze/straz_przyrzadu.sh --test
+
+# publikuj: zamek sierot przestaje odmawiac — biala lista z obcieta sciezka (klasa 29.08 'SIEGNIECIE_protokol.m') przechodzi
+publikuj-sieroty-nie-blokuja|||publikuj.sh|||git cat-file -e "HEAD:$p" 2>/dev/null || brak="$brak $p"|||git cat-file -e "HEAD:$p" 2>/dev/null || true|||bash publikuj.sh --test
+
+# straz_powtorzen: prog powtorzen podniesiony poza zasieg — alarm stabilny nigdy nie dostaje drugiego pytania (#78 wraca)
+powtorzenia-prog-poza-zasiegiem|||narzedzia/straze/straz_powtorzen.sh|||PROG="${POWT_PROG:-3}"|||PROG="${POWT_PROG:-999}"|||bash narzedzia/straze/straz_powtorzen.sh --test
+# straz_powtorzen: odpowiedz bez komendy dowodu zaczyna sie liczyc — rytual odhacza sam siebie (Goodhart z KOLEJKA_M)
+powtorzenia-rytual-liczy-sie|||narzedzia/straze/straz_powtorzen.sh|||grep -qE '`[^`]+`'|||grep -qE '.'|||bash narzedzia/straze/straz_powtorzen.sh --test
+
+# straz_wywolan: warunek POZYCJI KOMENDY rozluzniony do 'nazwa gdziekolwiek w linii' — wracaja falszywe pozytywy z komentarzy i cytatow (#56)
+wywolania-nazwa-gdziekolwiek|||narzedzia/straze/straz_wywolan.sh|||if (l ~ ("(^|;|&&|\\|\\||\\()[[:space:]]*" n "([[:space:]]|;|$|\\|)"))|||if (l ~ n)|||bash narzedzia/straze/straz_wywolan.sh --test
+# straz_wywolan: znacznik konca bloku --test przestaje dzialac — caly plik czytany jako tor, wada #79 niewidoczna
+wywolania-koniec-bloku-slepy|||narzedzia/straze/straz_wywolan.sh|||intest && /^(fi|done|esac)([ \t;]|$)/|||intest && /^(NIGDY_TAKA_LINIA)([ \t;]|$)/|||bash narzedzia/straze/straz_wywolan.sh --test
+powtorzen-sonda-zapisuje-cisze|||narzedzia/straze/straz_powtorzen.sh|||    [ -n "$_st" ] && [ "$_st" != "0" ] && zapisz "$klucz" "$_st"|||    zapisz "$klucz" "$_st"|||bash narzedzia/straze/straz_powtorzen.sh --test
+czystosc-case-sensitive|||narzedzia/straze/straz_czystosci.sh|||  found=$(git grep -nIi "$m"|||  found=$(git grep -nI "$m"|||bash narzedzia/straze/straz_czystosci.sh --test
+destylacja-bledy-przepuszcza-wszystko|||narzedzia/przyrzady/destyluj_ksiege.js|||    if (!wKorpusie || trzymaj) out.push(l);|||    out.push(l);|||node narzedzia/przyrzady/destyluj_ksiege.js --test
+destylacja-mosty-nie-filtruje|||narzedzia/przyrzady/destyluj_ksiege.js|||      if (!wszystkieJada) { zdjete++; continue; }|||      if (false) { zdjete++; continue; }|||node narzedzia/przyrzady/destyluj_ksiege.js --test
+odlewu-milczenie-przechodzi|||narzedzia/straze/straz_odlewu.sh|||  if [ -n "$_p" ]; then wylaczonych=$((wylaczonych+1)); continue; fi|||  wylaczonych=$((wylaczonych+1)); continue|||bash narzedzia/straze/straz_odlewu.sh --test
+wezownik-granica-nie-obowiazuje|||narzedzia/silniki/wezownik.js|||const OPH_S = 223.413, OPH_E = 242.013;|||const OPH_S = 0, OPH_E = 360;|||node narzedzia/silniki/wezownik.js --test
+odduplikuj-prog-zerowy|||narzedzia/przyrzady/odduplikuj.js|||    if (s >= 0.6 && (!best || s > best.s)) best = { s, z };|||    if (s >= 0 && (!best || s > best.s)) best = { s, z };|||node narzedzia/przyrzady/odduplikuj.js --test
+ewaluacja-nie-liczy-siegniec|||narzedzia/przyrzady/ewaluacja.js|||const siegniecia = (t.match(/^## SIĘGNIĘCIE/gm) || []).length;|||const siegniecia = 0;|||node narzedzia/przyrzady/ewaluacja.js --test
+
+# ── tura CRLF (02.09.2026): odcisk liczy treść kanoniczną, ale MUSI dalej widzieć treść ──
+hashuj-widzi-konce-linii|||hashuj.sh|||tr -d '\r' < "$1"|||cat < "$1"|||bash hashuj.sh --test
+hashuj-slepy-na-tresc|||hashuj.sh|||tr -d '\r' < "$1"|||: < "$1"|||bash hashuj.sh --test
+hashuj-straz-w-bajtach-dysku|||hashuj.sh|||fs.readFileSync(f,"utf8").replace(/\r/g,"")|||fs.readFileSync(f,"utf8")|||bash hashuj.sh --test
+weryfikacja-widzi-konce-linii|||weryfikacja.js|||Buffer.from(b.filter(x=>x!==13))|||b|||node weryfikacja.js --test
+weryfikacja-slepa-na-tresc|||weryfikacja.js|||Buffer.from(b.filter(x=>x!==13))|||Buffer.alloc(0)|||node weryfikacja.js --test
+
+# publikuj: atrapa toru traci hashuj.sh — blok wola go po nazwie z korzenia atrapy,
+# bez niego ksiega odlewu powstaje okaleczona i tor oblewa nieodroznialnie od wady zamka
+publikuj-atrapa-bez-hashuj|||publikuj.sh|||  cp hashuj.sh _STRAZ_wzorzec.txt _STRAZ_wyjatki.txt "$TN/a/" 2>/dev/null || :|||  :|||bash publikuj.sh --test
+# straz_zetonu: weryfikacja HEAD zdjeta — zmyslony hash przechodzi jako wazny
+straz-zetonu-hash-bez-weryfikacji|||narzedzia/straze/straz_zetonu.sh|||if git cat-file -e "${h}^{commit}" 2>/dev/null; then echo "WAZNY $h"; else echo "MARTWY $h"; fi|||echo "WAZNY $h"|||bash narzedzia/straze/straz_zetonu.sh --test
+mutacje-zamek-ciszy-zdjety|||mutacje.sh|||if [ "$ZLAPANE" -eq 0 ] && [ "$SLEPE" -eq 0 ]; then|||if [ 1 -eq 0 ] && [ "$SLEPE" -eq 0 ]; then|||bash mutacje.sh --test
+mutacje-preflight-zdjety|||mutacje.sh|||if [ -n "$P_POWOD" ]; then|||if false; then|||bash mutacje.sh --test
+# straz_zetonu --porownaj: licznik commitow za HEAD zdjety — kazdy zeton uchodzi za SWIEZY
+straz-zetonu-porownanie-slepe|||narzedzia/straze/straz_zetonu.sh|||git rev-list --count "$h..HEAD"|||echo 0|||bash narzedzia/straze/straz_zetonu.sh --test
+# inwentarz: obciazenie ku NIE ISTNIEJE zdjete — sam commit uchodzi za ISTNIEJE (precedens porownaj)
+inwentarz-istnieje-bez-pliku|||narzedzia/przyrzady/inwentarz.js|||if (n.COMMITY > 0 && n.PLIKI > 0) return ['ISTNIEJE'|||if (n.COMMITY > 0) return ['ISTNIEJE'|||node narzedzia/przyrzady/inwentarz.js --test
+# pokrycie_m: licznik praw slepy — kazde prawo uchodzi za majace egzekutora, wiersz PRAWA przestaje mierzyc
+pokrycie-m-prawa-zawsze-z-egzekutorem|||narzedzia/przyrzady/pokrycie_m.js|||const zEgz = zPrawem.filter(x => /`[A-Za-z0-9_./-]+\.(sh|js)`/.test(x));|||const zEgz = zPrawem;|||node narzedzia/przyrzady/pokrycie_m.js --test
+# straz_kryteriow: numer linii zdjety ze strumienia — osiem wierszy znow zlewa sie w dwie daty (#49)
+straz-kryteriow-jednostka-bez-wiersza|||narzedzia/straze/straz_kryteriow.sh|||printf '%s\t%s\tl.%s\n' "${f#./}" "$(iso "$d")" "$nr"|||printf '%s\t%s\n' "${f#./}" "$(iso "$d")"|||bash narzedzia/straze/straz_kryteriow.sh --test
+# straz_prerejestrow: USTALONE zdjete z filtru metryczki — data ustalenia znow uchodzi za termin (#010)
+straz-prerejestrow-ustalone-jako-termin|||narzedzia/straze/straz_prerejestrow.sh|||USTALON[A-Za-z]*|||||||bash narzedzia/straze/straz_prerejestrow.sh --test
+# mutacje.sh — SONDA SCIEZKI WSTECZNEJ (03.09.2026): trzy mechanizmy, trzy mutacje; kazda ma strone toru, ktora ja lapie
+mutacje-sonda-wsteczna-zdjeta|||mutacje.sh|||if [ -n "$S_POWOD" ]; then|||if false; then|||bash mutacje.sh --test
+mutacje-kontrola-po-zdjeta|||mutacje.sh|||if [ "$_PO" != "$_PRZED" ]; then|||if false; then|||bash mutacje.sh --test
+mutacje-ponowien-brak|||mutacje.sh|||for _p in 1 2 3; do|||for _p in; do|||bash mutacje.sh --test
+# wywiad.js: prog protezy zdjety — przyrzad przestaje meldowac sam siebie po 14 dniach ciszy (DZWONKI §3 wraca do bycia zdaniem)
+wywiad-proteza-nigdy|||narzedzia/przyrzady/wywiad.js|||const PROG_PROTEZY = 14;|||const PROG_PROTEZY = 99999;|||node narzedzia/przyrzady/wywiad.js --test
+# wywiad.js: pusty rejestr melduje sukces — cisza jako sukces (#39)
+wywiad-cisza-jako-sukces|||narzedzia/przyrzady/wywiad.js|||rejestr bez ani jednego pytania — PROTEZA: zasiej pytania albo skompostuj rejestr (rc=2)'); return 2; }|||rejestr bez ani jednego pytania'); return 0; }|||node narzedzia/przyrzady/wywiad.js --test
+# gotowosc slepe_punkty: sentinel 99 przy zerze zlapanych zdjety — cisza jako czystosc (#54/#39); tor (−) na fiksturze lapie
+gotowosc-slepe-cisza-jako-czystosc|||gotowosc.sh|||[ "$zl" -eq 0 ] && { printf '99\n'; return; }|||[ "$zl" -eq 0 ] && { printf '0\n'; return; }|||bash gotowosc.sh --test
+# gotowosc slepe_punkty: fikstura ignorowana — licznik liczy zywy rejestr mimo argumentow (#50 przez dwa pietra); tor (−) oczekuje 99 z rej_cisza, dostanie wynik zywego
+gotowosc-slepe-fikstura-ignorowana|||gotowosc.sh|||if [ -n "${1:-}" ]; then wy=$(cd "$1" && REJESTR="${2:-rej.txt}" bash "$KOR/mutacje.sh" 2>/dev/null)|||if false; then wy=$(cd "$1" && REJESTR="${2:-rej.txt}" bash "$KOR/mutacje.sh" 2>/dev/null)|||bash gotowosc.sh --test
+# inwentarz: trzon ASCII zdjety — inny diakrytyk we frazie znow daje falszywe NIE ISTNIEJE (#80)
+inwentarz-bez-trzonu-ascii|||narzedzia/przyrzady/inwentarz.js|||const ma = (s, f) => trzon(s).includes(trzon(f));|||const ma = (s, f) => s.toLowerCase().includes(f.toLowerCase());|||node narzedzia/przyrzady/inwentarz.js --test
+# lint_klas_znakow: wzorzec klasy zawezony do ASCII — lint przestaje widziec litery spoza ASCII w klasie (#80 wraca)
+lint-klas-znakow-slepy-na-nieascii|||narzedzia/linty/lint_klas_znakow.js|||const KLASA_NIEASCII = /\[[^\]\n]*[^\x00-\x7F][^\]\n]*\]/g;|||const KLASA_NIEASCII = /\[[^\]\n]*[\x00-\x7F][^\]\n]*\]\x00/g;|||node narzedzia/linty/lint_klas_znakow.js --test
+# lint_klas_znakow: zwolnienie LC_ALL rozszerzone na CALY plik zamiast linii — klasa bez locale w innej linii uchodzi (#80)
+lint-klas-zwolnienie-na-caly-plik|||narzedzia/linty/lint_klas_znakow.js|||const LOCALE_JAWNE = /LC_ALL=/;|||const LOCALE_JAWNE = /./;|||node narzedzia/linty/lint_klas_znakow.js --test
+# weryfikacja: klucz tkanki wraca do "ktorykolwiek plik TKANKI" — main/odlew z zalazkami znow zadaja DESTYLATY (04.09.2026)
+weryfikacja-tkanka-klucz-stary|||weryfikacja.js|||const tkObecna = fs.existsSync('kanon/ksiegi/KANON_LOG.md');|||const tkObecna = TKANKA.some(f=>fs.existsSync(f+'.md'));|||node weryfikacja.js --test
+weryfikacja-tkanka-regula-zdjeta|||weryfikacja.js|||const tkObecna = fs.existsSync('kanon/ksiegi/KANON_LOG.md');|||const tkObecna = false;|||node weryfikacja.js --test
+# markery z ciała: zakaz regresu listy i próg — bez nich zamek psuje to, czego strzeże (04.09.2026, blizna własna)
+markery-regres-listy-dozwolony|||narzedzia/straze/markery_z_ciala.sh|||if [ "$N" -lt "$STARE" ]; then|||if [ "$N" -lt 0 ]; then|||bash narzedzia/straze/markery_z_ciala.sh --test
+markery-prog-zdjety|||narzedzia/straze/markery_z_ciala.sh|||if [ "$N" -lt 3 ]; then|||if [ "$N" -lt 0 ]; then|||bash narzedzia/straze/markery_z_ciala.sh --test
+# lint artefaktow: rozroznienie "brak pliku" od "poddrzewa nie ma na tej galezi" (04.09.2026)
+lint-artefaktow-zasieg-zdjety|||narzedzia/linty/lint_artefaktow.js|||if (!jest && !poddrzewoJest) { pozaZasiegiem++; continue; }|||if (!jest) { pozaZasiegiem++; continue; }|||node narzedzia/linty/lint_artefaktow.js --test
+# weryfikacja: fikstura toru ⊗ siana, nie zapozyczona z galezi (04.09.2026)
+weryfikacja-fikstura-tk-zapozyczona|||weryfikacja.js|||fs.writeFileSync(path.join(tkNiepelna,'kanon/ksiegi/KANON_LOG.md'),|||fs.writeFileSync(path.join(tkNiepelna,'kanon/ksiegi/NIEISTOTNY.md'),|||node weryfikacja.js --test
+mutacje-kontrola-ciala-zdjeta|||mutacje.sh|||  if [ "$_PO" != "$_PRZED" ]; then|||  if false; then|||bash mutacje.sh --test
+publikuj-swiezosc-brak-galezi-cicha|||publikuj.sh|||    return 3; }|||    return 0; }|||bash publikuj.sh --test
+publikuj-swiezosc-formy-zdjeta|||publikuj.sh|||rozjazd="$rozjazd $p"|||rozjazd="$rozjazd"|||bash publikuj.sh --test
