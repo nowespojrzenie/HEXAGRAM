@@ -1,0 +1,258 @@
+#!/usr/bin/env sh
+# ── PRE-COMMIT: PRAWA ZMECHANIZOWANE (BLEDY ⓯ ⓰ ⓱ + PAT) ─────────────────────
+# Status M w hierarchii P→R→M: prawa, których nie trzeba pamiętać, bo nie da się
+# ich złamać. Instalacja: wstan.sh ustawia `git config core.hooksPath .githooks`.
+# Zasada: blokuj twardo tylko to, co ZAWSZE jest błędem; resztę ostrzegaj.
+set -u
+fail=0
+files="$(git diff --cached --name-only --diff-filter=ACM || true)"
+[ -n "$files" ] || exit 0
+
+for f in $files; do
+  [ -f "$f" ] || continue
+  case "$f" in
+    *.md|*.txt|*.sh|*.js|*.py|*.json)
+      # 1. TOKEN/PAT w treści (prawo: token NIGDY do repo — maskuj, rotuj)
+      if grep -qE 'github_pat_[A-Za-z0-9_]{20,}|ghp_[A-Za-z0-9]{30,}' "$f"; then
+        echo "✗ HOOK: token GitHub w pliku: $f — usuń i ROTUJ przed commitem"; fail=1
+      fi
+      # 2. Znaki kontrolne (BLEDY ⓯: heredoc/backslash → \x01 zamiast treści)
+      if od -An -tx1 "$f" | grep -qE ' 0[0-8bcef]| 1[0-9a-f]'; then
+        echo "✗ HOOK: znak kontrolny w: $f (BLEDY ⓯ — podwójny interpreter?)"; fail=1
+      fi
+      ;;
+  esac
+  case "$f" in
+    *.sh)
+      # 3. OSTRZEŻENIE (BLEDY ⓱): grep -c w łańcuchu bez || true = zielone zero pęka &&
+      if grep -nE 'grep -c[^|]*&&' "$f" | grep -vE '\|\| true' >/dev/null 2>&1; then
+        echo "⚠ HOOK (nie blokuję): w $f jest 'grep -c … &&' bez '|| true' — BLEDY ⓱"
+      fi
+      ;;
+  esac
+  case "$f" in
+    *.js)
+      # 5. OSTRZEŻENIE (BLEDY #21): znak/typ dnia liczony własnym tropikiem zamiast kanonu v4.
+      #    Self-exclude narzedzia/silniki/kronos_v4.js (nauka z #17 — silnik nie oznacza sam siebie).
+      case "$f" in */kronos_v4.js|narzedzia/silniki/kronos_v4.js) : ;; *)
+        if grep -qE '\.elon' "$f" && grep -qE '/ ?30|Math\.floor' "$f" && ! grep -q 'kronos_v4' "$f"; then
+          echo "⚠ HOOK (nie blokuję): $f liczy znak/typ dnia własnym tropikiem — BLEDY #21. Użyj require('./kronos_v4') (sidLon+getC+CONST)."
+        fi ;;
+      esac
+      ;;
+  esac
+done
+
+# 4. _HASHE.txt w commicie: format 12hex + 2 spacje + istniejący plik (BLEDY ⓯⓰)
+if printf '%s\n' "$files" | grep -qx '_HASHE.txt'; then
+  bad="$(awk 'NF!=2 || $1 !~ /^[0-9a-f]{12}$/ {print "  linia "NR": "$0}' _HASHE.txt)"
+  if [ -n "$bad" ]; then echo "✗ HOOK: _HASHE.txt zły format:"; echo "$bad"; fail=1; fi
+  while read -r h p; do
+    [ -n "$p" ] && [ ! -f "$p" ] && { echo "✗ HOOK: _HASHE wskazuje nieistniejący plik: $p"; fail=1; }
+  done < _HASHE.txt
+fi
+
+# 5. KLASA #30 w dokumentach rejestrowych (11.08.2026, ratyfikacja twórcy po ROZMOWIE #2):
+# liczba rejestrowa bez śladu licznika w akapicie BLOKUJE commit pliku pieczętowanego.
+# Zasięg: prerejestr/*.md + ROZMOW*.md w STAGE (stare pliki nie blokują, dopóki nietykane).
+for p in $(printf '%s\n' "$files" | grep -E '^(prerejestr/.*\.md|ROZMOW[^/]*\.md)$'); do
+  if ! bash narzedzia/straze/straz_deklamatora.sh --liczby "$p" >/tmp/l30.txt 2>&1; then
+    echo "✗ HOOK (#30): $p"; grep -E '^\s+\[#30\]|✗' /tmp/l30.txt | head -4; fail=1
+  fi
+done
+
+if [ "$fail" -ne 0 ]; then
+  echo "── commit ZATRZYMANY przez pre-commit (prawa M nie proszą — blokują) ──"
+  exit 1
+fi
+# ZAMEK #35
+# 6. ŁADUNEK COMMITA (BLIZNA #35, mechanizacja R->M 20.08.2026)
+# Sedno #35: SHA dowodzi TRANSPORTU, nie ŁADUNKU. Realne zdarzenie z 29.07 nie brzmiało
+# „ktoś podmienił treść przy zgodnym SHA" (to kryptograficznie niemożliwe), tylko
+# „commit poszedł BEZ części plików" — ręczny `git add <lista>` zamiast `add -A`.
+# Mechanizm musi więc stać TU, gdzie commituje się ręcznie, a nie w zapis_git.sh,
+# który sam robi `add -A` i zawsze zostawia czyste drzewo (to była wada #59).
+#
+# Blokujemy tylko przypadek jednoznaczny: plik ŚLEDZONY ma zmiany, których nie ma
+# w STAGE. Pliki nieśledzone NIE blokują — nowy plik obok commita to normalna praca.
+niepelne=$(git diff --name-only 2>/dev/null)
+if [ -n "$niepelne" ]; then
+  echo "✗ #35 ŁADUNEK NIEPEŁNY: pliki ŚLEDZONE mają zmiany poza tym commitem:"
+  printf '%s\n' "$niepelne" | head -5 | sed 's/^/    /'
+  echo "  -> SHA potwierdzi transport tego, co jest w stage, i nic nie powie o reszcie."
+  echo '  -> git add -A (świadomie wszystko) albo git stash -k (świadomie część).'
+  exit 1
+fi
+
+# ZAMEK #67
+# 6b. ŚWIEŻOŚĆ ODCISKU (BLIZNY #67 + #68, mechanizacja R->M 30.08.2026, słowo twórcy „67 to dobry kandydat")
+# Zmierzone 30.08 na świeżym klonie: od 743c54d przez OSIEM commitów _HASHE.txt niósł odciski
+# 36 plików, które w tych samych commitach miały już INNĄ treść — każdy z tych commitów
+# meldował „weryfikacja 0", bo poprzednia instancja mierzyła inne drzewo niż wysłała.
+# Zamek pyta o STAGE, nie o drzewo robocze: dla każdego pliku w stage, który ma wiersz
+# w _HASHE.txt (też ze stage'u, jeśli tam jest), sha256 blobu ze stage'u MUSI równać się
+# odciskowi. Plik spoza rejestru NIE blokuje (#56) — o niego pyta hashuj „POZA REJESTREM".
+# Koszt zmierzony: <1 s na pełnym stage'u. Jedna pętla domyka #67 i #68 (KOLEJKA_M).
+if git cat-file -e ":_HASHE.txt" 2>/dev/null; then
+  _hashe="$(git show :_HASHE.txt)"
+else
+  _hashe="$(cat _HASHE.txt 2>/dev/null || true)"
+fi
+nieswieze=""
+if [ -n "$_hashe" ]; then
+  for f in $files; do
+    [ "$f" = "_HASHE.txt" ] && continue
+    _w="$(printf '%s\n' "$_hashe" | awk -v p="$f" '$2==p {print $1; exit}')"
+    [ -z "$_w" ] && continue
+    _j="$(git show ":$f" 2>/dev/null | sha256sum | cut -c1-12)"
+    [ "$_w" = "$_j" ] || nieswieze="$nieswieze $f"
+  done
+fi
+if [ -n "$nieswieze" ]; then
+  echo "✗ #67 ODCISK NIEŚWIEŻY: plik w stage różni się od odcisku w _HASHE.txt:"
+  printf '%s\n' $nieswieze | head -8 | sed 's/^/    /'
+  echo "  -> bash hashuj.sh <plik>… (jawnie), potem git add _HASHE.txt. Weryfikacja 0 na innym drzewie nie jest pomiarem tego commita."
+  exit 1
+fi
+
+# 7. ARTEFAKT INTERPOLACJI (BLIZNA ⓬, mechanizacja R->M 20.08.2026)
+# ZAMEK #12
+# Prawo ⓬: polska treść trafia do pliku WYŁĄCZNIE przez heredoc / potrójne cudzysłowy.
+# Łamane jest zawsze tak samo i zawsze zostawia ten sam ślad: literalne `\n` w tekście,
+# bo `echo "linia\nlinia"` bez `-e` zapisuje dwa znaki zamiast złamania wiersza.
+# Zdarzyło się realnie (15.08: POLE oddane bez uruchomienia, literalne backslash-n).
+# Zamek łapie SKUTEK w pliku — czego nie da się przeoczyć — a nie sposób pisania komendy,
+# którego repo nie widzi.
+# ZAKRES: pliki .md w STAGE, POZA blokami kodu (```), bo tam `\n` jest legalną treścią.
+# Zmierzone przed budową: 0 trafień na całym żywym korpusie — zamek wchodzi na czysto,
+# nie na wzorzec martwy (różnica wobec odrzuconego lintu #18-A: tam wzorca nie było nigdy).
+interp=""
+for f in $files; do
+  case "$f" in
+    *.md) ;;
+    *) continue ;;
+  esac
+  [ -f "$f" ] || continue
+  # Wykluczamy DWA rodzaje legalnego kontekstu: bloki ``` i INLINE-CODE w pojedynczych
+  # backtickach. To drugie wyszło przy pierwszym prawdziwym commicie tego zamka — księga
+  # blizn cytuje sklejki w rodzaju `3\n99`, a `KOLEJKA_M` cytuje sam wzorzec. Bez tego
+  # zamek blokowałby OPISY własnych blizn: alarm szerszy niż sygnał (#56) w narzędziu,
+  # które ma pilnować dokładności.
+  if awk '/^```/{k=!k;next} !k {t=$0; gsub(/`[^`]*`/,"",t); if (t ~ /\\n/) {print FILENAME":"FNR; c++}} END{exit !c}' "$f" >/dev/null 2>&1; then
+    interp="$interp $f"
+  fi
+done
+if [ -n "$interp" ]; then
+  echo "✗ ⓬ ARTEFAKT INTERPOLACJI: literalne \\n poza blokiem kodu w:$interp"
+  echo "  -> polska treść do pliku idzie przez heredoc (cat > plik << 'EOF') albo python \"\"\"."
+  echo "  -> jeśli \\n jest tu TREŚCIĄ, zamknij fragment w bloku kodu."
+  exit 1
+fi
+
+# 7. SKŁADNIA PYTHONA (BLIZNA ⓬, mechanizacja R->M 20.08.2026)
+# Reguła #12 brzmiała: „każdą polską treść do pliku pisz WYŁĄCZNIE w potrójnych
+# cudzysłowach". ZMIERZONE przed budową mechanizmu: literalny lint tej reguły dałby
+# 58 trafień na `narzedzia/przyrzady/plan_a4.py` i 16 na trzech plikach grafiki — a WSZYSTKIE PIĘĆ plików
+# .py w repo parsuje się bez błędu. Reguła jest więc SZERSZA niż problem: groźna nie
+# jest polska litera w literale, tylko ZNAK CYTOWANIA wewnątrz literału ograniczonego
+# tym samym znakiem. Lint na literę uczyłby nie patrzeć (#56: alarm szerszy niż sygnał).
+#
+# Mierzymy zatem SKUTEK, nie formę: czy plik .py w stage w ogóle się parsuje.
+# To łapie dokładnie to, co zabolało 9.07 — SyntaxError w czasie parsowania, przez który
+# padł CAŁY skrypt i wcześniejsze bloki też się nie wykonały.
+py=$(printf '%s\n' "$files" | grep -E '\.py$' || true)
+if [ -n "$py" ] && command -v python3 >/dev/null 2>&1; then
+  for f in $py; do
+    [ -f "$f" ] || continue
+    if ! python3 -m py_compile "$f" 2>/dev/null; then
+      echo "✗ ⓬ SKŁADNIA: $f nie parsuje się — commit zatrzymany."
+      python3 -m py_compile "$f" 2>&1 | tail -3 | sed 's/^/    /'
+      echo "  -> #12: polską treść z cudzysłowami pisz w potrójnych (\"\"\"…\"\"\")."
+      exit 1
+    fi
+  done
+fi
+
+# ZAMEK #61 — REGRES LINTÓW (21.08.2026)
+# Blizna #61: `lint_artefaktow` urósł 1→2 i PRZEŻYŁ COMMIT, bo audyt sprawdził
+# wyłącznie liczby ZADEKLAROWANE przez autora ładunku. Ten zamek nie pyta autora —
+# mierzy HEAD `git archive` i porównuje z drzewem. NIE wymaga zera naruszeń:
+# zatrzymuje wyłącznie WZROST, więc nie potrzebuje ani jednego wyjątku.
+# STRAŻ ZNIKNĘŁA = ODMOWA (29.08.2026, dach narzedzia/straze/). Do dziś `[ -f ]`
+# CICHO POMIJAŁO brakującą straż — zamek przechodzący, bo nie umie znaleźć, jest
+# gorszy niż jego brak (zmierzone na atrapie, BADANIE §VII.3). Predykat celuje
+# WĄSKO (#56: alarm szerszy niż sygnał trenuje nieuwagę): odmawiamy tylko gdy repo
+# ZNA tę straż POD INNĄ ŚCIEŻKĄ — czyli dokładnie po przenosinach, których wołający nie
+# nadążył przeszyć. W obcym repo, które tej straży nie ma wcale — cisza.
+if [ ! -f narzedzia/straze/straz_lintow.sh ]; then
+  _gdzie="$(git ls-files "*straz_lintow.sh" 2>/dev/null | head -1)"
+  if [ -n "$_gdzie" ]; then
+    echo "✗ ZAMEK #61: STRAŻ PRZENIESIONA — narzedzia/straze/straz_lintow.sh nie istnieje, ale repo ma ją w $_gdzie."
+    echo "  Hook wołałby nieobecny plik i PRZESZEDŁ, bo nie umie znaleźć (#56/#70)."
+    echo "  -> przeszyj ścieżkę w .githooks/pre-commit albo: git commit --no-verify"
+    exit 1
+  fi
+fi
+if [ -f narzedzia/straze/straz_lintow.sh ]; then
+  if ! bash narzedzia/straze/straz_lintow.sh >/tmp/l61.txt 2>&1; then
+    echo "✗ ZAMEK #61: licznik lintu WZRÓSŁ względem poprzedniego commitu."
+    sed 's/^/    /' /tmp/l61.txt
+    echo "  -> spłać regres albo pomiń świadomie: git commit --no-verify"
+    exit 1
+  fi
+fi
+
+# ZAMEK MIANOWNIKA (wpięty 29.08.2026, ratyfikacja kształtu 22.08)
+# Miejsce NIEPRZYPADKOWE: straż pyta o wiersze DODANE, więc musi stać w chwili commitu —
+# `weryfikacja.js` opisuje stan, `wstan.sh` mierzy przeszłość. Do dziś wołała ją wyłącznie
+# bateria: przyrząd sprawny, miejsce gotowe, brakowało jednego kroku narodzin (#52).
+# PODATEK JAWNY: od teraz nowe prawo bez mechanizmu wchodzi jako NOŚNA RAMA albo M z wierszem
+# w KOLEJKA_M — „R"/„P" na NOWYM numerze zatrzyma commit. Korekta starego wpisu przechodzi.
+if [ ! -f narzedzia/straze/straz_mianownika.sh ]; then
+  _gdzie="$(git ls-files "*straz_mianownika.sh" 2>/dev/null | head -1)"
+  if [ -n "$_gdzie" ]; then
+    echo "✗ ZAMEK MIANOWNIKA: STRAŻ PRZENIESIONA — repo ma ją w $_gdzie."
+    echo "  -> przeszyj ścieżkę w .githooks/pre-commit albo: git commit --no-verify"
+    exit 1
+  fi
+fi
+if [ -f narzedzia/straze/straz_mianownika.sh ]; then
+  if ! bash narzedzia/straze/straz_mianownika.sh >/tmp/mian.txt 2>&1; then
+    echo "✗ ZAMEK MIANOWNIKA: nowy wpis wchodzi bez legalnego statusu."
+    sed 's/^/    /' /tmp/mian.txt
+    echo "  -> NOŚNA RAMA (jawne „jeszcze nie\") albo M + wiersz w KOLEJKA_M, albo: git commit --no-verify"
+    exit 1
+  fi
+fi
+
+# ZAMEK NARODZIN (21.08.2026)
+# Sześć nowych plików w dobę, sześć razy ręczne domykanie rejestru. `hashuj.sh` świadomie
+# ODMAWIA tworzenia odcisków dla nowych plików — luka była po stronie czytnika, nie autora.
+# Nie wymaga zera długu: pyta WYŁĄCZNIE o pliki rodzące się w TYM commicie.
+# STRAŻ ZNIKNĘŁA = ODMOWA (29.08.2026, dach narzedzia/straze/). Do dziś `[ -f ]`
+# CICHO POMIJAŁO brakującą straż — zamek przechodzący, bo nie umie znaleźć, jest
+# gorszy niż jego brak (zmierzone na atrapie, BADANIE §VII.3). Predykat celuje
+# WĄSKO (#56: alarm szerszy niż sygnał trenuje nieuwagę): odmawiamy tylko gdy repo
+# ZNA tę straż POD INNĄ ŚCIEŻKĄ — czyli dokładnie po przenosinach, których wołający nie
+# nadążył przeszyć. W obcym repo, które tej straży nie ma wcale — cisza.
+if [ ! -f narzedzia/straze/straz_narodzin.sh ]; then
+  _gdzie="$(git ls-files "*straz_narodzin.sh" 2>/dev/null | head -1)"
+  if [ -n "$_gdzie" ]; then
+    echo "✗ ZAMEK NARODZIN: STRAŻ PRZENIESIONA — narzedzia/straze/straz_narodzin.sh nie istnieje, ale repo ma ją w $_gdzie."
+    echo "  Hook wołałby nieobecny plik i PRZESZEDŁ, bo nie umie znaleźć (#56/#70)."
+    echo "  -> przeszyj ścieżkę w .githooks/pre-commit albo: git commit --no-verify"
+    exit 1
+  fi
+fi
+if [ -f narzedzia/straze/straz_narodzin.sh ]; then
+  if ! bash narzedzia/straze/straz_narodzin.sh >/tmp/nar.txt 2>&1; then
+    echo "✗ ZAMEK NARODZIN: nowy przyrząd wchodzi bez kompletu."
+    sed 's/^/    /' /tmp/nar.txt
+    echo "  -> dopisz odcisk w _HASHE.txt i mutację w mutacje.txt, albo: git commit --no-verify"
+    exit 1
+  fi
+fi
+
+exit 0
+
+exit 0
