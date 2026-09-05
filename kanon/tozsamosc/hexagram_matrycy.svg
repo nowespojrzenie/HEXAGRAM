@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1260" font-family="'Iowan Old Style','Palatino Linotype','Book Antiqua',Palatino,Georgia,serif">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="44%" r="72%">
+      <stop offset="0%" stop-color="#14182400"/>
+      <stop offset="0%" stop-color="#141824"/>
+      <stop offset="100%" stop-color="#070910"/>
+    </radialGradient>
+    <radialGradient id="eter" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#e7dcf7"/>
+      <stop offset="28%" stop-color="#b9a6e0"/>
+      <stop offset="60%" stop-color="#5b4d7d" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#0a0c14" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="3.2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softglow" x="-120%" y="-120%" width="340%" height="340%">
+      <feGaussianBlur stdDeviation="9"/>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1260" fill="#070910"/>
+  <rect width="1080" height="1260" fill="url(#bg)"/>
+
+  <!-- TITLE -->
+  <text x="540" y="92" text-anchor="middle" fill="#ece8df" font-size="40" letter-spacing="10">HEXAGRAM MATRYCY</text>
+  <line x1="396" y1="116" x2="684" y2="116" stroke="#3a4254" stroke-width="1"/>
+  <text x="540" y="146" text-anchor="middle" fill="#8b93a6" font-size="15" letter-spacing="3.5"
+        font-family="ui-monospace,'SF Mono',Menlo,Consolas,monospace">sześć żywiołów · jeden pierścień · trzy cykle</text>
+
+  <!-- ===== OPPOSITION AXES (+3) — drawn first, beneath ===== -->
+  <g stroke="#5a6172" stroke-width="1" stroke-dasharray="2 7" opacity="0.6">
+    <line x1="540" y1="320" x2="540" y2="860"/>
+    <line x1="773.8" y1="455" x2="306.2" y2="725"/>
+    <line x1="773.8" y1="725" x2="306.2" y2="455"/>
+  </g>
+
+  <!-- ===== RING / PERIMETER — build & decay cycle ===== -->
+  <polygon points="540,320 773.8,455 773.8,725 540,860 306.2,725 306.2,455"
+           fill="none" stroke="#6b6256" stroke-width="2" opacity="0.72"/>
+  <!-- forward (clockwise = build) arrowheads -->
+  <g fill="#93a06a" opacity="0.92">
+    <polygon points="664.7,392.0 648.3,388.3 653.3,379.7"/>
+    <polygon points="773.8,599 768.8,583 778.8,583"/>
+    <polygon points="649.1,797.0 660.5,784.7 665.5,793.3"/>
+    <polygon points="415.3,788.0 431.7,791.7 426.7,800.3"/>
+    <polygon points="306.2,581 311.2,597 301.2,597"/>
+    <polygon points="430.9,383.0 419.5,395.3 414.5,386.7"/>
+  </g>
+
+  <!-- ===== CONTROL TRIANGLES (+2) ===== -->
+  <!-- A · świadomość {Ogień·Woda·Śmierć} -->
+  <polygon points="540,320 773.8,725 306.2,725" fill="none" stroke="#e0b15a" stroke-width="2" opacity="0.92" filter="url(#glow)"/>
+  <!-- B · doświadczanie {Powietrze·Ziemia·Metal} -->
+  <polygon points="773.8,455 540,860 306.2,455" fill="none" stroke="#9aa6bd" stroke-width="2" opacity="0.92" filter="url(#glow)"/>
+
+  <!-- ===== ETER — still centre / void ===== -->
+  <circle cx="540" cy="590" r="78" fill="url(#eter)" filter="url(#softglow)" opacity="0.85"/>
+  <circle cx="540" cy="590" r="30" fill="#0a0c14"/>
+  <circle cx="540" cy="590" r="30" fill="none" stroke="#b9a6e0" stroke-width="1" opacity="0.7"/>
+  <circle cx="540" cy="590" r="2.4" fill="#e7dcf7"/>
+  <text x="540" y="566" text-anchor="middle" fill="#cdbce8" font-size="13" letter-spacing="5"
+        font-family="ui-monospace,'SF Mono',Menlo,monospace">ETER</text>
+  <text x="540" y="636" text-anchor="middle" fill="#7d7596" font-size="10.5" letter-spacing="0.5"
+        font-family="ui-monospace,'SF Mono',Menlo,monospace">pustka · wdech</text>
+
+  <!-- ===== NODES ===== -->
+  <!-- helper styling: disc + drawn glyph + outside label -->
+
+  <!-- 0 OGIEŃ (fire △) -->
+  <g>
+    <circle cx="540" cy="320" r="37" fill="#ef5a36" fill-opacity="0.10" stroke="#ef5a36" stroke-width="1.5" filter="url(#glow)"/>
+    <polygon points="540,304 527,338 553,338" fill="none" stroke="#ef5a36" stroke-width="2.2"/>
+    <text x="540" y="276" text-anchor="middle" fill="#ef5a36" font-size="17" letter-spacing="2">0 · OGIEŃ</text>
+  </g>
+  <!-- 1 POWIETRZE (air △̶) -->
+  <g>
+    <circle cx="773.8" cy="455" r="37" fill="#86c5e0" fill-opacity="0.10" stroke="#86c5e0" stroke-width="1.5" filter="url(#glow)"/>
+    <polygon points="773.8,439 760.8,473 786.8,473" fill="none" stroke="#86c5e0" stroke-width="2.2"/>
+    <line x1="766" y1="456" x2="781.6" y2="456" stroke="#86c5e0" stroke-width="2.2"/>
+    <text x="824" y="450" text-anchor="start" fill="#86c5e0" font-size="17" letter-spacing="2">1 · POWIETRZE</text>
+  </g>
+  <!-- 2 WODA (water ▽) -->
+  <g>
+    <circle cx="773.8" cy="725" r="37" fill="#4a78e8" fill-opacity="0.12" stroke="#4a78e8" stroke-width="1.5" filter="url(#glow)"/>
+    <polygon points="773.8,741 760.8,707 786.8,707" fill="none" stroke="#6f95f0" stroke-width="2.2"/>
+    <text x="824" y="720" text-anchor="start" fill="#6f95f0" font-size="17" letter-spacing="2">2 · WODA</text>
+  </g>
+  <!-- 3 ZIEMIA (earth ▽̶) -->
+  <g>
+    <circle cx="540" cy="860" r="37" fill="#b08a3e" fill-opacity="0.12" stroke="#b08a3e" stroke-width="1.5" filter="url(#glow)"/>
+    <polygon points="540,876 527,842 553,842" fill="none" stroke="#c69a4a" stroke-width="2.2"/>
+    <line x1="532.2" y1="859" x2="547.8" y2="859" stroke="#c69a4a" stroke-width="2.2"/>
+    <text x="540" y="924" text-anchor="middle" fill="#c69a4a" font-size="17" letter-spacing="2">3 · ZIEMIA</text>
+  </g>
+  <!-- 4 ŚMIERĆ (operator — gate ring) -->
+  <g>
+    <circle cx="306.2" cy="725" r="37" fill="#9b6ad6" fill-opacity="0.12" stroke="#9b6ad6" stroke-width="1.5" filter="url(#glow)"/>
+    <circle cx="306.2" cy="725" r="14" fill="none" stroke="#b58be8" stroke-width="2"/>
+    <polygon points="306.2,732 300.2,716 312.2,716" fill="none" stroke="#b58be8" stroke-width="1.8"/>
+    <text x="256" y="720" text-anchor="end" fill="#b58be8" font-size="17" letter-spacing="2">ŚMIERĆ · 4</text>
+    <text x="256" y="740" text-anchor="end" fill="#7d6aa0" font-size="11" letter-spacing="0.5"
+          font-family="ui-monospace,Menlo,monospace">⊙ uspójnienie</text>
+  </g>
+  <!-- 5 METAL (operator — salt circle+bar) -->
+  <g>
+    <circle cx="306.2" cy="455" r="37" fill="#cdd2dd" fill-opacity="0.12" stroke="#cdd2dd" stroke-width="1.5" filter="url(#glow)"/>
+    <circle cx="306.2" cy="455" r="14" fill="none" stroke="#d8dce5" stroke-width="2"/>
+    <line x1="291.2" y1="455" x2="321.2" y2="455" stroke="#d8dce5" stroke-width="2"/>
+    <text x="256" y="450" text-anchor="end" fill="#d8dce5" font-size="17" letter-spacing="2">METAL · 5</text>
+    <text x="256" y="470" text-anchor="end" fill="#878d9c" font-size="11" letter-spacing="0.5"
+          font-family="ui-monospace,Menlo,monospace">bieguny rozproszone</text>
+  </g>
+
+  <!-- ===== LEGEND ===== -->
+  <g font-family="ui-monospace,'SF Mono',Menlo,Consolas,monospace">
+    <line x1="72" y1="966" x2="1008" y2="966" stroke="#2c3242" stroke-width="1"/>
+    <text x="72" y="956" fill="#6b7286" font-size="11" letter-spacing="1.5">ŻYWIOŁY  ·  (♦ wewn / ♢ zewn)</text>
+
+    <!-- left column -->
+    <g font-size="12.5">
+      <circle cx="80" cy="990" r="5.5" fill="#ef5a36"/>
+      <text x="96" y="994" fill="#c9cdd6"><tspan fill="#ef5a36">0 OGIEŃ</tspan>  △  ♈ / ♌  ·  intuicja</text>
+      <circle cx="80" cy="1018" r="5.5" fill="#86c5e0"/>
+      <text x="96" y="1022" fill="#c9cdd6"><tspan fill="#86c5e0">1 POWIETRZE</tspan>  △̶  ♊ / ♎  ·  myślenie</text>
+      <circle cx="80" cy="1046" r="5.5" fill="#4a78e8"/>
+      <text x="96" y="1050" fill="#c9cdd6"><tspan fill="#6f95f0">2 WODA</tspan>  ▽  ♋ / ♓  ·  uczucie</text>
+    </g>
+    <!-- right column -->
+    <g font-size="12.5">
+      <circle cx="566" cy="990" r="5.5" fill="#b08a3e"/>
+      <text x="582" y="994" fill="#c9cdd6"><tspan fill="#c69a4a">3 ZIEMIA</tspan>  ▽̶  ♑ / ♉  ·  doznanie</text>
+      <circle cx="566" cy="1018" r="5.5" fill="#9b6ad6"/>
+      <text x="582" y="1022" fill="#c9cdd6"><tspan fill="#b58be8">4 ŚMIERĆ</tspan>  ⊙  ♏ / ♐  ·  operator</text>
+      <circle cx="566" cy="1046" r="5.5" fill="#cdd2dd"/>
+      <text x="582" y="1050" fill="#c9cdd6"><tspan fill="#d8dce5">5 METAL</tspan>  ⊖  ♍ / ♒  ·  wola (operator)</text>
+    </g>
+
+    <line x1="72" y1="1078" x2="1008" y2="1078" stroke="#2c3242" stroke-width="1"/>
+
+    <!-- cycles -->
+    <g font-size="12.5">
+      <line x1="80" y1="1100" x2="116" y2="1100" stroke="#93a06a" stroke-width="2"/>
+      <polygon points="116,1100 108,1096 108,1104" fill="#93a06a"/>
+      <text x="128" y="1104" fill="#aeb4c2">obwód → <tspan fill="#93a06a">CYKL BUDOWY</tspan> · wstecz → <tspan fill="#8a7a8f">ROZPADU</tspan>  (przeciwprąd: naprzód = treść · wstecz = pokarm)</text>
+
+      <line x1="80" y1="1126" x2="116" y2="1126" stroke="#e0b15a" stroke-width="2"/>
+      <text x="128" y="1130" fill="#aeb4c2"><tspan fill="#e0b15a">△ świadomość</tspan> {Ogień·Woda·Śmierć}  ⟂  <tspan fill="#9aa6bd">▽ doświadczanie</tspan> {Powietrze·Ziemia·Metal}   —  CYKL KONTROLI (+2)</text>
+
+      <line x1="80" y1="1152" x2="116" y2="1152" stroke="#5a6172" stroke-width="1" stroke-dasharray="2 6"/>
+      <text x="128" y="1156" fill="#aeb4c2">osie OPOZYCJI (+3): Ogień↔Ziemia · <tspan fill="#cdd2dd">Woda↔Metal</tspan> (najmocniej falsyfikowalna) · Powietrze↔Śmierć</text>
+    </g>
+
+    <line x1="72" y1="1180" x2="1008" y2="1180" stroke="#2c3242" stroke-width="1"/>
+    <text x="72" y="1204" fill="#6b7286" font-size="11.5">dwa trójkąty = jedna powierzchnia (½-skręt Möbiusa) · lift → toroid → Klein</text>
+    <text x="72" y="1226" fill="#7e6a55" font-size="11.5">STATUS: NOŚNA RAMA · Strefa Nulifikacji · do weryfikacji w ciele — nie kodyfikowane jako prawo</text>
+    <text x="1008" y="1226" text-anchor="end" fill="#5a6172" font-size="11.5">soczewka nazywa — ciało rozstrzyga</text>
+  </g>
+</svg>
