@@ -1,0 +1,19 @@
+node_modules/
+# package-lock.json JEST w repo od 21.09.2026 (D3, słowo twórcy "L1"): lockfile to nie są
+# zależności, tylko 10 KB zapisu, KTÓRE wersje zainstalowano. Bez niego ^zakresy dawały różne
+# wersje silnika na różnych maszynach (zmierzone: @swisseph/node ^1.2.2 -> 1.3.1).
+.markery_osobowe
+# baseline baterii (02.09.2026, decyzja twórcy): liczba oblanych torów TEGO środowiska.
+# Poza kanonem świadomie — Windows i Linux mają różne baseline'y, więc plik w repo byłby
+# cudzą prawdą o cudzej maszynie. Zapisywany WYŁĄCZNIE: bash zapis_git.sh --baseline-baterii
+.baseline_baterii
+.obsidian/
+# płot E1 (27.07.2026, zgoda twórcy): śmieci mobilne/robocze
+.obsidian/
+.trash/
+*conflicted*
+0_MELDUNEK.txt
+# obieg ROZMOW ODLEWOW przeszedl na pelny wklej w czacie (11.08, decyzja tworcy) —
+# plik-paczka generowal kolizje kpull na telefonie przy kazdej turze
+DO_ODLEWU.md
+__pycache__/

@@ -1,0 +1,42 @@
+# ── KOŃCE LINII (tura CRLF, 02.09.2026, słowo twórcy) ───────────────────────
+# Treść w repo jest LF; drzewo robocze na Windows przychodziło z CRLF przez SYSTEMOWE
+# core.autocrlf=true, więc wszystko liczone z dysku (odciski _HASHE, bajty straży
+# append-only) dawało dwie liczby przy jednym kanonie — zmierzone na HEAD 8183fbd:
+# Windows 71 ✓/0 ✗/135 ⚠ wobec Linux 194/0/12, a rejestr diamentów skażony (5f59028).
+# Ta reguła usuwa PRZYCZYNĘ w drzewie. Przyrządy liczą treść kanoniczną NIEZALEŻNIE
+# (hashuj.sh --odcisk, weryfikacja.js kanon()) — oba, nie jedno: reguła nie sięga
+# cudzego klonu z obcą konfiguracją, przyrząd sięga.
+* text=auto eol=lf
+*.bat -text
+*.se1 binary
+
+# ── GRANICA RDZEŃ / DANE (wariant B) ────────────────────────────────────────
+# Pliki TKANKI = dane tej instancji. merge=ours: przy scalaniu rdzenia z `main`
+# git ZACHOWUJE wersję z tej gałęzi (dane) i NIGDY nie nadpisuje ich rdzeniem.
+# Wymaga jednorazowo: git config merge.ours.driver true  (robi to narzedzia/przyrzady/sync_rdzen.sh).
+7_NATAL.md              merge=ours
+PROFIL.md               merge=ours
+ZAPISY_eter.md          merge=ours
+PREREJESTR_oddech.md    merge=ours
+DESTYLATY_architekta.md merge=ours
+ARCHITEKT_istnienie.md  merge=ours
+BLEDY.md                merge=ours
+0_SNAPSHOT_watek.md     merge=ours
+KANON_LOG.md            merge=ours
+_HASHE.txt              merge=ours
+doradcy/DB/5_STAN.md    merge=ours
+doradcy/DR/5_STAN.md    merge=ours
+doradcy/DB/2_KONTEKST.md merge=ours
+doradcy/DR/2_KONTEKST.md merge=ours
+START_TU.md             merge=ours
+_GRANICA.md             merge=ours
+_TORUS.md               merge=ours
+TASKI.md                merge=ours
+ZADANIA.md              merge=ours
+pulpit.md               merge=ours
+PASIEKA_soczewki.md     merge=ours
+PROTOKOL_brama.md       merge=ours
+PRZESWIT_eter.md        merge=ours
+narzedzia/straze/straz_czystosci.sh      merge=ours
+zapis_git.sh            merge=ours
+DZWONKI.md              merge=ours
