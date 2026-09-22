@@ -12,7 +12,9 @@
 
 ## §0.1 — Pytanie główne
 
-[NOŚNA RAMA] **Czy HEXAGRAM/KRONOS może przejść z budowy plikowo-rytualnej na obiektową — ROLA · POKÓJ · KLOCEK — tak, aby zmniejszyć koszt dryfu i rozrostu kontekstu, zachować dotychczasowe mechanizmy ochronne oraz umożliwić powołanie nowej roli bez ręcznego prowadzenia jej przez strukturę?**
+[NOŚNA RAMA] **Jak nadać aktualnemu HEXAGRAMOWI/KRONOSOWI ciało na miarę jesieni 2026 — uwzględniając najnowocześniejsze wzorce myślenia o systemach agentowych, pamięci, kontraktach, hand-offach, nadzorze i kontroli kontekstu — tak, aby zachować własną ontologię i mechanizmy ochronne, a jednocześnie zmniejszyć koszt dryfu, rozrostu kontekstu i ręcznego prowadzenia?**
+
+[NOŚNA RAMA] **ROLA · POKÓJ · KLOCEK są hipotezą konstrukcyjną, nie założonym wynikiem.** Research ma odpowiedzieć, które współczesne wzorce warto przyjąć, które odrzucić i jak przełożyć ich użyteczne właściwości na ciało już istniejącego systemu.
 
 ---
 
@@ -48,7 +50,7 @@
 
 [PRAWO] **Zakres prac tej rundy** pozostaje ograniczony do `kanon/plany/`; żadnych cięć implementacyjnych w tej turze.
 
-[NOŚNA RAMA] Obiektowość ma zmienić sposób organizacji odpowiedzialności, etapów i narzędzi, a nie ciche przepisać istniejące prawa systemu.
+[NOŚNA RAMA] Przebudowa ma nadać istniejącemu systemowi ciało, a nie wymienić jego tożsamość na cudzy framework lub model architektury. Obiektowość, jeżeli zostanie potwierdzona badaniem, ma być środkiem; nie celem samym w sobie.
 
 ---
 
@@ -56,21 +58,21 @@
 
 [NOŚNA RAMA] **O1 · „prądowanie”:** co dokładnie oznacza rola „prądowania”? Proszę o funkcję w jednym zdaniu oraz minimalnie: wejście → decyzja/działanie → wyjście/artefakt.
 
-[NOŚNA RAMA] **O2 · Stan roli:** które informacje mają być trwałym stanem ROLI, a które mają żyć wyłącznie w POKOJU jako artefakt etapu?
+[NOŚNA RAMA] **O2 · Stan roli:** które informacje mają być trwałym stanem ROLI, a które mają żyć wyłącznie w POKOJU jako artefakt etapu? **OTWARTE**
 
-[NOŚNA RAMA] **O3 · Wieloinstancyjność:** czy jedna ROLA może mieć równocześnie kilka instancji/slotów pracujących na różnych sprawach, czy kontrakt zakłada jedną aktywną instancję?
+[NOŚNA RAMA] **O3 · Wieloinstancyjność:** czy jedna ROLA może mieć równocześnie kilka instancji/slotów pracujących na różnych sprawach, czy kontrakt zakłada jedną aktywną instancję? **OTWARTE**
 
-[NOŚNA RAMA] **O4 · Granica POKOJU:** czy POKÓJ jest trwałym bytem procesu, do którego można wrócić, czy jednorazowym przejściem zakończonym artefaktem?
+[NOŚNA RAMA] **O4 · Granica POKOJU:** czy POKÓJ jest trwałym bytem procesu, do którego można wrócić, czy jednorazowym przejściem zakończonym artefaktem? **OTWARTE**
 
-[NOŚNA RAMA] **O5 · Twardy próg R0:** czy 5% w K2 ma być docelowym progiem, czy twórca chce inną wartość bezwzględną/procentową po pomiarze bazowym?
+[NOŚNA RAMA] **O5 · Twardy próg R0:** czy 5% w K2 ma być docelowym progiem, czy twórca chce inną wartość bezwzględną/procentową po pomiarze bazowym? **OTWARTE**
 
 ---
 
 ## §0.5 — Prerejestr: hipotezy przed badaniem
 
-[REZONANS] **H1 · Kontrakt obiektu będzie potrzebował trzech warstw naraz:** ROLA jako nośnik odpowiedzialności i stanu, POKÓJ jako jawny etap z bramkami i artefaktem oraz KLOCEK jako bezstanowe narzędzie.
+[REZONANS] **H1 · Docelowe ciało może potrzebować rozdziału ROLA · POKÓJ · KLOCEK**, ale nie zakładamy tego przed researchem; badanie ma sprawdzić, czy ten podział jest właściwym nośnikiem odpowiedzialności, etapów i narzędzi.
 
-[REZONANS] **H2 · Największą wartość przyniosą wzorce kontraktowe i jawny hand-off**, natomiast czysty „supervisor nad wszystkim” może zwiększać centralizację kontekstu zamiast ją zmniejszać.
+[REZONANS] **H2 · Największą wartość mogą dać kontrakty, jawny hand-off, ograniczanie kontekstu i zewnętrzny nadzór**, ale ich dokładny kształt ma wyniknąć z researchu, a nie z importu nazw wzorców.
 
 [REZONANS] **H3 · Najbardziej kompatybilne z dotychczasowym porządkiem będą te wzorce agentowe, które rozdzielają rolę od narzędzia i traktują przekazanie jako jawny kontrakt**, a nie jako swobodną zmianę kontekstu.
 
@@ -85,6 +87,8 @@
 ## §0.6 — Stan części
 
 [PRAWO] **CZĘŚĆ 0 = zamknięta koncepcyjnie.**
+
+[NOŚNA RAMA] Główne pytanie jest celowo szersze niż „czy obiektować”: **research ma znaleźć ciało adekwatne do jesieni 2026 dla tego konkretnego systemu**, z zachowaniem jego własnych praw.
 
 [NOŚNA RAMA] Odpowiedzi na O1–O5 są polami otwartymi dla dalszej architektury; brak odpowiedzi nie uprawnia do ich domyślania.
 
