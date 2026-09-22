@@ -8,8 +8,8 @@
 
 | ID | Hipoteza | Co ją potwierdzi | Co ją obali |
 |---|---|---|---|
-| H1 | [REZONANS] Jednostka docelowa będzie naturalnie trójwarstwowa: ROLA · POKÓJ · KLOCEK. | Audyt pokaże rozdzielne odpowiedzialności, etapy i narzędzia, które można przypisać bez nakładania ról. | Audyt pokaże, że te granice są sztuczne lub że większość istniejących bytów musi należeć jednocześnie do wielu warstw bez jasnej własności. |
-| H2 | [REZONANS] Jawny hand-off i kontrakt obiektu będą bardziej użyteczne niż centralny supervisor. | Research pokaże mechanizmy stabilnego przekazania pracy przy ograniczaniu kontekstu, a §2 pokaże istniejące miejsca, gdzie przekazanie jest obecnie kosztowne. | Research i audyt wskażą, że kontrola centralna jest konieczna dla większości ścieżek i nie powoduje istotnego wzrostu kontekstu. |
+| H1 | [REZONANS] Docelowe ciało może przyjąć podział ROLA · POKÓJ · KLOCEK, ale podział ten musi zostać potwierdzony względem stanu sztuki jesieni 2026 i względem samego HEXAGRAMU. | Research + audyt pokażą, że rozdzielenie odpowiedzialności, etapów i narzędzi daje mierzalną korzyść bez naruszenia inwariantów. | Research lub audyt pokażą, że inny wzorzec lepiej rozwiązuje problem albo że te granice są sztuczne. |
+| H2 | [REZONANS] Wartość przyszłej architektury będzie zależała bardziej od jakości kontraktów, hand-offu, ograniczania kontekstu i nadzoru niż od samej liczby agentów/rol. | Research porówna te mechanizmy oraz ich porażki i pokaże, które można przełożyć na HEXAGRAM. | Research pokaże, że te mechanizmy nie dają przewagi w analizowanej klasie systemów albo kolidują z jego unikalnymi inwariantami. |
 | H3 | [REZONANS] System ma już zalążki obiektowości, tylko bez nazwy klasy. | Audyt znajdzie powtarzalne skupiska stanu, kontraktu i odpowiedzialności wokół istniejących artefaktów/wywołań. | Audyt pokaże, że obecne skupiska są wyłącznie tekstowymi rytuałami bez stabilnego właściciela i bez powtarzalnego kontraktu. |
 | H4 | [REZONANS] Główny koszt obecnej architektury leży w rozproszeniu własności i wyzwalaczy, nie w samym „braku klas”. | Audyt policzy przypadki alarmów bez właściciela, niewpiętych wywołań, rytuałów zależnych od wiedzy operatora oraz ich koszt. | Największy koszt okaże się wynikać przede wszystkim z długości/duplikacji samej treści, niezależnie od własności i hand-off. |
 | H5 | [REZONANS] Filtr Prawdy, głos naczelny z maskami, straże, satelity i prerejestr przetrwają zmianę tylko jako prawa przekrojowe, nie jako własność pojedynczej ROLI. | Analiza pokaże, że mechanizmy te mogą istnieć nad mapą ROLI/POKOI i nadal być jednoznaczne. | Jednoznaczność któregoś mechanizmu wymaga, aby został wchłonięty przez konkretną rolę/klasę. |
@@ -18,7 +18,9 @@
 
 ## Odpowiedzi twórcy — do dopisania przed §3
 
-[NOŚNA RAMA] O1 · definicja „prądowania”: **OTWARTE**
+[PRAWO] O1 · definicja „prądowania”: **ROZSTRZYGNIĘTE** przez twórcę — prądowanie/przelot jest właściwością asystenta działającego w roli; nie jest osobną rolą ani klockiem.
+
+[PRAWO] Przelot może prowadzić asystenta przez kolejne POKOJE tej samej pracy; WIDZĄCY pilnuje pętli i prawa wniesienia nowej treści do POKOI, a proponowany wkład podlega ocenie zgodności z kanonem i innymi warstwami.
 
 [NOŚNA RAMA] O2 · granica stan vs artefakt POKOJU: **OTWARTE**
 
@@ -27,5 +29,7 @@
 [NOŚNA RAMA] O4 · trwałość POKOJU: **OTWARTE**
 
 [NOŚNA RAMA] O5 · twardy próg R0: **OTWARTE**
+
+[NOŚNA RAMA] Główna hipoteza badawcza brzmi: **jak nadać istniejącemu systemowi ciało adekwatne do jesieni 2026, bez wymiany jego tożsamości na cudzy wzorzec.**
 
 [PRAWO] Prerejestr kończy się przed badaniem. Nie dopisywać do niego wyników audytu ani researchu wstecz.
