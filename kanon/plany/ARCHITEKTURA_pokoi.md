@@ -276,3 +276,184 @@ z **WIDZĄCYM** jako zewnętrzną warstwą kontroli trajektorii i **BRAMKĄ POWR
 
 [PRAWO] **STOP przed §1b.**
 
+
+
+## §1b — Research pogłębiony: trzy wybrane wzorce
+
+[NOŚNA RAMA] Zakres 1b został ograniczony do trzech wzorców wybranych w §1a: HARNESS + durable state / graph, context engineering + JIT capabilities, handoff + supervision / guardrails.
+
+[NOŚNA RAMA] Celem nie jest przyjęcie nazwy frameworku, lecz wydobycie właściwości konstrukcyjnych: pola roli, stan, pamięć, przekazanie, ograniczanie kontekstu, nadzór oraz praktyczne porażki.
+
+### A. HARNESS + DURABLE STATE / GRAPH
+
+#### A1. Jak definiuje się rolę
+
+[PRAWO] W OpenAI Agents SDK agent jest opisany jako model wyposażony w instrukcje i narzędzia, z opcjonalnymi handoffami, guardrailami i structured output; sesja/runtime prowadzi wykonanie, a tracing zapisuje przebieg. Źródło: OpenAI Agents SDK, dokumentacja bieżąca. https://openai.github.io/openai-agents-python/
+
+[PRAWO] LangGraph rozdziela stan procesu od funkcji wykonujących kolejne kroki. Stan powinien zawierać dane potrzebne w następnych krokach; dane wyprowadzalne nie powinny być przechowywane, a stan najlepiej przechowywać jako dane surowe i dopiero na żądanie formatować je dla modelu. https://docs.langchain.com/oss/javascript/langgraph/thinking-in-langgraph
+
+[REZONANS] Dla HEXAGRAMU oznacza to, że ROLA nie powinna być „wielkim promptem”. Minimalny kontrakt ROLI powinien opisywać: tożsamość funkcjonalną, zakres odpowiedzialności, dostępne capability, dopuszczalne POKOJE, stan i sposób zakończenia. Model jest wykonawcą tego kontraktu, nie jego źródłem praw.
+
+#### A2. Stan i pamięć
+
+[PRAWO] LangGraph zapisuje stan między krokami przez checkpointy; przy przerwaniu wykonanie może zostać wznowione z zachowanym stanem. Dokumentacja rozróżnia także stan surowy od formatowanego promptu. https://docs.langchain.com/oss/javascript/langgraph/thinking-in-langgraph
+
+[PRAWO] Dla długich zadań Anthropic opisuje osobny problem harnessu: sama kompakcja kontekstu nie wystarcza. W eksperymentach agent po wyczerpaniu kontekstu potrafił zostawić pracę częściowo wykonaną, a kolejna instancja musiała odgadywać stan; pomocne okazały się jawne środowisko początkowe, plik postępu i uporządkowany hand-off między sesjami. https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
+
+[REZONANS] W HEXAGRAMIE trzeba rozdzielić co najmniej: STAN WYKONANIA, ŁADUNEK, ARTEFAKTY i PAMIĘĆ TRWAŁĄ. Nie powinno się wymuszać, aby te cztery rzeczy były jedną strukturą.
+
+#### A3. Jak przekazuje się zadanie
+
+[PRAWO] LangGraph reprezentuje kolejne kroki jako jawne przejścia grafu; węzły mogą aktualizować stan i wskazywać dalszy węzeł. Przerwanie może zapisać stan i wznowienie odbywa się z istniejącego checkpointu. https://docs.langchain.com/oss/javascript/langgraph/thinking-in-langgraph
+
+[PRAWO] MCP 2026-07-28 traktuje długie zadania jako jawne Tasks będące trwałymi maszynami stanów: narzędzie może zwrócić uchwyt zadania zamiast wyniku końcowego, a klient pobiera później stan lub rezultat. https://blog.modelcontextprotocol.io/posts/2026-07-28/
+
+[REZONANS] Przelot HEXAGRAMU powinien mieć stan trajektorii niezależny od narracji: start → pokój → krok → wynik → next/STOP, z możliwością wznowienia bez odtwarzania całej rozmowy.
+
+#### A4. Jak świat zapobiega dryfowi i rozrostowi kontekstu
+
+[PRAWO] LangGraph wskazuje jawne granice węzłów, surowy stan i checkpointy jako mechanizmy obserwowalności oraz odzyskiwania po błędach. Dokumentacja opisuje też kompromis granulacji: mniejsze jednostki dają częstsze punkty kontrolne, ale zwiększają złożoność przepływu. https://docs.langchain.com/oss/javascript/langgraph/thinking-in-langgraph
+
+[REZONANS] POKÓJ powinien być jednostką wystarczająco małą, by dawać sensowny punkt kontroli, ale wystarczająco dużą, by nie produkować sztucznego grafu. „Jedna czynność = jeden pokój” byłoby zbyt grubą regułą.
+
+#### A5. Co się psuje w praktyce
+
+[PRAWO] Anthropic opisuje dwa praktyczne tryby porażki przy długich zadaniach: agent próbuje zrobić zbyt wiele naraz i zostawia stan częściowo wykonany; późniejsza instancja może uznać pracę za zakończoną, bo widzi istniejący postęp. Rozwiązaniem eksperymentalnym było rozdzielenie inicjalizacji od iteracyjnego wykonania oraz pozostawianie czystego stanu dla następnej sesji. https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents
+
+[PRAWO] Anthropic opisuje też sytuację, w której reset kontekstu plus strukturalny hand-off poprawiają ciągłość lepiej niż sama kompakcja, ale kosztem dodatkowej orkiestracji, tokenów i latencji. https://www.anthropic.com/engineering/harness-design-long-running-apps
+
+[REZONANS] Straż „sesja się skończyła” nie może zależeć od deklaracji modelu. Potrzebujemy jawnego stanu i warunku domknięcia, a „czysty stan dla następnego przelotu” powinien być artefaktem.
+
+---
+
+### B. CONTEXT ENGINEERING + JIT CAPABILITIES
+
+#### B1. Jak definiuje się rolę
+
+[PRAWO] Anthropic opisuje context engineering jako dobieranie konfiguracji całego kontekstu modelu, a nie tylko promptu. W skład kontekstu wchodzą instrukcje, narzędzia, MCP, dane zewnętrzne i historia. https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+
+[PRAWO] Anthropic Agent Skills pakuje instrukcje, skrypty i zasoby w moduły, które agent może odkrywać i ładować dynamicznie. https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills
+
+[REZONANS] ROLA powinna definiować domyślną mapę capability, ale POKÓJ powinien otwierać tylko podzbiór potrzebny do konkretnego kroku.
+
+#### B2. Stan i pamięć
+
+[PRAWO] Anthropic wskazuje zjawisko context rot: wraz ze wzrostem liczby tokenów może pogarszać się skuteczność wykorzystywania informacji. Jako techniki długiego horyzontu wskazuje m.in. compaction, structured note-taking i architektury subagentowe. https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+
+[PRAWO] W podejściu just-in-time agent utrzymuje lekkie identyfikatory zasobów, a właściwą treść pobiera dopiero wtedy, gdy jest potrzebna. https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+
+[REZONANS] SATELITA może więc być wskaźnikiem do treści, a nie treścią obowiązkowo wczytywaną. Jeszcze dalej: POKÓJ może przechowywać „mam prawo sięgnąć po X”, a nie „X jest już w kontekście”.
+
+#### B3. Przekazanie zadania
+
+[PRAWO] OpenAI handoff może filtrować wejście przekazywane do następnego agenta; domyślnie odbiorca może zobaczyć pełną historię, a ograniczenie wymaga jawnego filtra lub mapera. https://openai.github.io/openai-agents-python/handoffs/
+
+[PRAWO] Kompaktowanie historii handoffu nie jest automatycznie redakcją danych wrażliwych: argumenty i wyniki narzędzi mogą pozostać w wygenerowanym podsumowaniu. https://openai.github.io/openai-agents-python/ref/extensions/handoff_filters/
+
+[REZONANS] ŁADUNEK powinien być jawnie wybranym interfejsem przekazania, a nie skutkiem ubocznym transcriptu.
+
+#### B4. Jak zapobiega się dryfowi
+
+[PRAWO] Anthropic wskazuje dwa skrajne błędy projektowania kontekstu: zbyt twarde zakodowanie logiki w promptach oraz zbyt ogólne instrukcje, które zakładają wspólny kontekst, którego model nie ma. https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+
+[REZONANS] POKÓJ nie może być ani encyklopedią, ani pustą tabliczką „rób dobrze”. Powinien mieć mały, jednoznaczny kontrakt i możliwość pobrania szczegółów na żądanie.
+
+#### B5. Co się psuje w praktyce
+
+[PRAWO] Anthropic stwierdza, że compaction nie rozwiązuje całkowicie długiego horyzontu; późniejsza instancja może odziedziczyć niedokładne lub niepełne wskazówki. Nieodwracalne usuwanie kontekstu może też pozbyć się informacji potrzebnej później. https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents https://www.anthropic.com/engineering/managed-agents
+
+[REZONANS] Nie powinniśmy robić z compaction ani z ŁADUNKU jedynego źródła prawdy. Artefakty i stan muszą istnieć poza kontekstem, żeby model mógł je ponownie pobrać.
+
+---
+
+### C. HANDOFF + SUPERVISION / GUARDRAILS
+
+#### C1. Jak definiuje się rolę
+
+[PRAWO] OpenAI rozróżnia agent-as-tool, gdzie główny agent zachowuje własność rozmowy, od handoffu, gdzie kontrola przechodzi do specjalisty. Handoff może mieć typowane metadane, warunki włączenia oraz filtr wejścia. https://openai.github.io/openai-agents-python/handoffs/
+
+[REZONANS] Przelot ≠ przekazanie władzy. Asystent może wejść do kolejnego pokoju bez oddawania temu pokojowi własności całej pracy.
+
+#### C2. Stan i pamięć
+
+[PRAWO] OpenAI rozdziela dane przekazywane jako metadane handoffu od stanu aplikacji; osobne mechanizmy służą do filtrowania historii. https://openai.github.io/openai-agents-python/handoffs/
+
+[REZONANS] W HEXAGRAMIE warto rozdzielić trzy paczki: DECYZJA O PRZEJŚCIU, ŁADUNEK DLA NASTĘPNEGO POKOJU oraz STAN WSPÓLNY WYKONANIA.
+
+#### C3. Jak zadanie jest przekazywane
+
+[PRAWO] Handoff ma jawnego odbiorcę, może przyjąć strukturalny payload i filtrować historię.
+
+[PRAWO] W jednym runie guardraile wejściowe dotyczą pierwszego agenta, a wyjściowe agenta kończącego; kontrole narzędzi są osobnym mechanizmem. https://openai.github.io/openai-agents-python/guardrails/
+
+[REZONANS] Nie wolno zakładać dziedziczenia ochrony tylko dlatego, że wykonawca przeszedł do następnego pokoju. WIDZĄCY musi mieć własny punkt obserwacji i decyzji o przejściu.
+
+#### C4. Jak zapobiega się dryfowi, pętli i przejęciu
+
+[PRAWO] OpenAI tracing obejmuje generacje, tool calle, handoffy i guardraile. https://openai.github.io/openai-agents-python/tracing/
+
+[PRAWO] Dokumentacja handoffów pokazuje ograniczenie: filtrowanie strukturalnych elementów narzędzi nie musi usuwać ich argumentów i wyników, jeżeli zostały wcześniej skopiowane do zwykłej wiadomości albo podsumowania. https://openai.github.io/openai-agents-python/ref/extensions/handoff_filters/
+
+[REZONANS] WIDZĄCY powinien obserwować graf ruchu, użycia capability, próby skutku ubocznego i zmianę warstwy systemu, nie tylko treść końcowej odpowiedzi.
+
+#### C5. Co się psuje w praktyce
+
+[PRAWO] Samo nested handoff history może zachować argumenty i wyniki narzędzi w podsumowaniu; kompaktowanie nie gwarantuje redakcji. https://openai.github.io/openai-agents-python/ref/extensions/handoff_filters/
+
+[PRAWO] Guardraile agentowe nie pokrywają automatycznie całego wieloagentowego przebiegu. https://openai.github.io/openai-agents-python/guardrails/
+
+[REZONANS] Najgroźniejsza porażka dla HEXAGRAMU wygląda tak: wykonawca przechodzi lokalne bramki, ale pomiędzy nimi zmienia znaczenie zadania albo przemyca stan, capability lub zmianę do warstwy nadrzędnej. WIDZĄCY musi pilnować właśnie tego odcinka.
+
+---
+
+## §1b.1 — Odpowiedź na pytanie „jak definiować ROLĘ”
+
+[REZONANS] Po porównaniu trzech wzorców ROLA wygląda mniej jak „maska osobowości”, a bardziej jak kontrakt wykonawczy:
+
+**rola = tożsamość funkcjonalna + zakres odpowiedzialności + dopuszczalne pokoje + capability + stan + granica STOP + właściciel alarmu + polityka pamięci + model domyślny jako parametr wymienny.**
+
+[PRAWO] Źródła zewnętrzne wspierają rozdzielenie agenta od narzędzi, handoffów, stanu, guardrali i runtime'u; nie wspierają natomiast tezy, że jeden konkretny zestaw tych pól jest uniwersalnym standardem. https://openai.github.io/openai-agents-python/ https://docs.langchain.com/oss/javascript/langgraph/thinking-in-langgraph
+
+---
+
+## §1b.2 — Odpowiedź na pytanie „jak przekazywać między rolami”
+
+[REZONANS] Najczystszy model roboczy to:
+
+**przelot → decyzja przejścia → minimalny ŁADUNEK → wejście do POKOJU → wykonanie → artefakt → decyzja wyjścia → WIDZĄCY → ewentualna BRAMKA POWROTU.**
+
+[PRAWO] To odpowiada możliwościom dzisiejszych systemów: handoff może ograniczać historię, stan może żyć poza transcriptom, a tracing i guardraile mogą obserwować kolejne przejścia. https://openai.github.io/openai-agents-python/handoffs/ https://openai.github.io/openai-agents-python/tracing/
+
+---
+
+## §1b.3 — Odpowiedź na pytanie „jak nie pozwolić kontekstowi puchnąć”
+
+[REZONANS] Zasada robocza:
+
+**„Przechowuj stan; pobieraj kontekst; nie przenoś historii.”**
+
+[PRAWO] Jest to zgodne z zasadą surowego stanu i promptu formatowanego na żądanie oraz z JIT retrieval/context engineering. https://docs.langchain.com/oss/javascript/langgraph/thinking-in-langgraph https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents
+
+[REZONANS] Dla HEXAGRAMU trzeba rozdzielić co najmniej trzy miary: R0 startowe, rozmiar ŁADUNKU hand-off oraz maksymalny kontekst użyty przez POKÓJ.
+
+---
+
+## §1b.4 — Odpowiedź na pytanie „jak zapobiegać przejęciu systemu”
+
+[PRAWO] Zewnętrzne wzorce pokazują walidację wejścia/wyjścia, kontroli narzędzi, handoffów i tracingu, ale nie dowodzą, że sama walidacja struktury zapewnia prawdziwość lub bezpieczeństwo semantyczne. https://openai.github.io/openai-agents-python/guardrails/ https://openai.github.io/openai-agents-python/handoffs/
+
+[REZONANS] WIDZĄCY powinien być czymś odrębnym od zwykłego guardrailu schematu: badać trajektorię, zakres uprawnień, ruch informacji oraz próbę zmiany warstwy nadrzędnej.
+
+[REZONANS] „Przejęcie systemu” warto zoperacjonalizować jako klasę mierzalnych zdarzeń: próba zapisu poza zakresem, próba zmiany kontraktu, próba ominięcia pokoju, próba samodzielnego nadania sobie capability, próba wejścia w pętlę lub próba powrotu bez zatwierdzenia.
+
+---
+
+## §1b.5 — Co NIE wynika z researchu
+
+[PRAWO] Research nie potwierdza tezy, że istnieje jeden obowiązujący standard architektury agentowej ani że zawsze należy budować wiele agentów. Anthropic wprost zaleca dobierać złożoność do problemu, a OpenAI opisuje mały zestaw prymitywów zamiast jednej kompletnej architektury. https://www.anthropic.com/engineering/building-effective-agents https://openai.github.io/openai-agents-python/
+
+[REZONANS] **Nie kopiujemy LangGraph, OpenAI Agents SDK, MCP ani Agent Skills jako architektury HEXAGRAMU.** Bierzemy właściwości: jawny stan, mały handoff, JIT capability, durable execution, obserwowalność i warstwowy nadzór.
+
+[PRAWO] **CZĘŚĆ 1b = wykonana.**
+
+[PRAWO] **STOP przed CZĘŚCIĄ 2.**
