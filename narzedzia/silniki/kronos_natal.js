@@ -1,0 +1,158 @@
+// ============================================================
+// KRONOS · NATAL/HOROSKOP — ASC, MC, DOMY + planety w 3 układach
+// ------------------------------------------------------------
+// JEDNO ŹRÓDŁO PRAWDY: ayan/meanNode/getC z kronos_v4, MATRYCA z kronos_matryca.
+// Domy: swisseph calculateHouses (Placidus domyślnie, --hsys=W/K/A/...).
+// DECYZJA (3.07.2026, twórca): czyta ORKIESTRATOR; odczyt WIELOUKŁADOWY
+//   z jawnym rozróżnieniem co jest czym; interpretacja = KOMENTARZ, nie diagnoza.
+// STATUSY: pozycje planet = OBLICZONE. ASC/MC/domy = NOŚNA RAMA⚠
+//   (czułe na dokładność godziny i miejsca — weryfikuj akt urodzenia).
+// Przypisanie planeta→dom liczone RAZ na tropiku (podział fizyczny,
+//   niezależny od etykiet zodiaku — Lahiri/drakonian przesuwają cusps
+//   i planety o tę samą wartość, dom zostaje ten sam).
+// ============================================================
+// --strefa <IANA> (07.10.2026, strefa A/8): strefa GODZINY URODZENIA (domyślnie TZ.STREFA instancji; --utc nadal wygrywa).
+// Musi ustawić KRONOS_TZ PRZED pierwszym require tz_pl.js — kronos_matryca.js ładuje go transitywnie niżej.
+let POMIN_STREFA = -1;
+{
+  const i = process.argv.findIndex((a, n) => n >= 2 && (a === '--strefa' || a.startsWith('--strefa=')));
+  if (i >= 0) {
+    const v = process.argv[i] === '--strefa' ? process.argv[i + 1] : process.argv[i].slice('--strefa='.length);
+    if (!v || v.startsWith('--')) { console.error('✗ kronos_natal.js: --strefa wymaga nazwy IANA (np. --strefa America/New_York)'); process.exit(2); }
+    process.env.KRONOS_TZ = v;
+    if (process.argv[i] === '--strefa') POMIN_STREFA = i;
+  }
+}
+const A   = require('astronomy-engine');
+const K   = require('./kronos_v4.js');
+const M   = require('./kronos_matryca.js');
+const swe = require('@swisseph/node');
+
+const norm = x => ((x % 360) + 360) % 360;
+
+// --- czas: wejście = czas polski (jak reszta KRONOS), --utc = wejście w UTC ---
+const TZ = require('./tz_pl.js');   // JEDNO ŹRÓDŁO czasu lokalnego (13.08.2026)
+// UWAGA: dla dat < 1996 reguła UE nie obowiązywała — TZ.pozaZakresem(y) to sygnalizuje.
+// 1a (05.10.2026): dla lat < 1996 offset z tzdata (TZ.offLokalny), nie z reguły UE; brak danych → rc=2.
+const tzOffPL = (y, m, d, h) => {
+  try { return TZ.offLokalny(y, m, d, TZ.godzWejscia(h)); }
+  catch (e) { console.log(String(e && e.message ? e.message : e) + ' — podaj godzinę w UTC z --utc'); process.exit(2); }   // U1-06: prawdziwy powód z tz_pl.js (niepełnogodzinny offset, brak tzdata…), nie stałe „rok < 1996”
+};
+
+// --- znaki tropikalne: równe 30° od 0° Barana (konwencja zachodnia) ---
+const ZNAKI_TROPIK = ["Baran","Byk","Bliźnięta","Rak","Lew","Panna","Waga","Skorpion","Strzelec","Koziorożec","Wodnik","Ryby"];
+const SYM = {Baran:"♈",Byk:"♉","Bliźnięta":"♊",Rak:"♋",Lew:"♌",Panna:"♍",Waga:"♎",Skorpion:"♏",Strzelec:"♐","Koziorożec":"♑",Wodnik:"♒",Ryby:"♓"};
+function znakTropik(lon){ const i = Math.floor(norm(lon) / 30); return { pl: ZNAKI_TROPIK[i], sym: SYM[ZNAKI_TROPIK[i]], st: norm(lon) - i * 30 }; }
+
+// --- Lahiri: REALNE granice konstelacji (kanon kronos_v4/getC) + żywioł MATRYCY ---
+function znakLahiri(lonSid){
+  const c = K.getC(norm(lonSid));
+  const m = M.MATRYCA[c.pl] || null;
+  return { pl: c.pl, sym: c.sym, st: norm(lonSid) - c.s < 0 ? norm(lonSid) + 360 - c.s : norm(lonSid) - c.s,
+           thun: c.el, el: m ? m.el : "—", biegun: m ? m.biegun : "—", em: m ? m.em : "" };
+}
+
+// --- pozycje tropikalne (astronomy-engine — ten sam tor co v4) ---
+const CIALA = ["Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto"];
+const CSYM  = {Sun:"☉",Moon:"☽",Mercury:"☿",Venus:"♀",Mars:"♂",Jupiter:"♃",Saturn:"♄",Uranus:"♅",Neptune:"♆",Pluto:"♇"};
+const CPL   = {Sun:"Słońce",Moon:"Księżyc",Mercury:"Merkury",Venus:"Wenus",Mars:"Mars",Jupiter:"Jowisz",Saturn:"Saturn",Uranus:"Uran",Neptune:"Neptun",Pluto:"Pluton"};
+function tropLon(body, date){
+  if (body === "Moon") return norm(A.EclipticGeoMoon(date).lon);
+  return norm(A.Ecliptic(A.GeoVector(A.Body[body], date, true)).elon);
+}
+
+// --- dom dla długości tropikalnej przy tropikalnych cusps (1..12) ---
+// JEDNO ŹRÓDŁO od 13.08.2026 (faza A): logika mieszka w domy.js, tor przy niej.
+const { domDla } = require('./domy.js');
+
+function fmtPoz(lon, ayanV, nodeV){
+  const t = znakTropik(lon);
+  const l = znakLahiri(norm(lon - ayanV));
+  const d = znakTropik(norm(lon - nodeV)); // drakonian: konwencja znaków równych
+  return {
+    trop: `${t.sym} ${t.pl} ${t.st.toFixed(1)}°`,
+    lah:  `${l.sym} ${l.pl} ${l.st.toFixed(1)}° · ${l.el}/${l.biegun} ${l.em}`,
+    drak: `${d.sym} ${d.pl} ${d.st.toFixed(1)}°`,
+    elMatryca: l.el,
+  };
+}
+
+// ================================= MAIN =================================
+const argv = process.argv.slice(2).filter((_, n) => n + 2 !== POMIN_STREFA + 1);   // wartość po `--strefa ` nie jest argumentem pozycyjnym
+const flags = Object.fromEntries(argv.filter(a => a.startsWith("--")).map(a => { const [k, v] = a.slice(2).split("="); return [k, v ?? true]; }));
+const args  = argv.filter(a => !a.startsWith("--"));
+// (K6/N9) --hsys: kod spoza listy swisseph, `--hsys` bez wartości i `--hsys=` dawały CICHO Placidus, a nagłówek drukował „Placidus"
+// — odczyt na innym układzie domów, niż poprosiła osoba, bez żadnego sygnału. Teraz: rc 2 i lista dozwolonych (Map, nie obiekt:
+// `--hsys=constructor` nie może przejść przez prototyp).
+const HSYS_NAZWY = new Map(Object.entries(swe.HouseSystem).map(([nazwa, kod]) => [kod, nazwa]));
+if ('hsys' in flags && !(typeof flags.hsys === 'string' && HSYS_NAZWY.has(flags.hsys))) {
+  console.error(`✗ kronos_natal.js: nieznany układ domów --hsys=${flags.hsys === true ? '' : flags.hsys}. Dozwolone: ${[...HSYS_NAZWY].map(([k, n]) => `${k} (${n})`).join(', ')}`);
+  process.exit(2);
+}
+const hsys = 'hsys' in flags ? flags.hsys : "P";
+const hsysName = HSYS_NAZWY.get(hsys);
+
+let date, lat, lon, opisCzasu;
+if (args[0] === "now"){
+  date = new Date();
+  lat = parseFloat(args[1]); lon = parseFloat(args[2]);
+  opisCzasu = "⏱ ZMIERZONE TERAZ (zegar systemowy)";
+} else {
+  const [y, mo, d, h, mi] = args.slice(0, 5).map(Number);
+  // (K6/N9) data z argumentów bez isFinite: „xx" → NaN → `mi||0` zjadało NaN minuty jako 0, a NaN w dacie szedł w efemerydę.
+  const zleDane = [['rok', y], ['miesiąc', mo], ['dzień', d], ['godzina', h], ['minuta', mi]].filter(([, v]) => !Number.isFinite(v)).map(([n]) => n);
+  if (zleDane.length) {
+    console.error(`✗ kronos_natal.js: data urodzenia nie jest liczbą (${zleDane.join(', ')}): "${args.slice(0, 5).join(' ')}" — oczekiwane: YYYY M D HH MM`);
+    process.exit(2);
+  }
+  lat = parseFloat(args[5]); lon = parseFloat(args[6]);
+  const lok = flags.utc ? { off: 0, zrodlo: 'UTC' } : tzOffPL(y, mo, d, h);
+  const off = lok.off;
+  date = new Date(Date.UTC(y, mo - 1, d, h - off, mi || 0));
+  if (isNaN(date.getTime())) { console.error(`✗ kronos_natal.js: data urodzenia poza zakresem Date: ${y} ${mo} ${d} ${h} ${mi}`); process.exit(2); }
+  opisCzasu = `wejście: ${d}.${mo}.${y} ${String(h).padStart(2,"0")}:${String(mi||0).padStart(2,"0")} ${flags.utc ? "UTC" : (lok.zrodlo === 'tzdata' ? "UTC+" + off : TZ.nazwa(off))}`
+    + (lok.zrodlo === 'tzdata' ? "\nstrefa sprzed 1996: z tzdata (Europe/Warsaw), nie z reguły UE" : "");
+}
+if (!isFinite(lat) || !isFinite(lon)){
+  console.log("Użycie:\n  node kronos_natal.js YYYY M D HH MM LAT LON [--hsys=P|W|K|A|R|C|… (pełna lista przy błędnym kodzie)] [--utc] [--strefa IANA]\n  node kronos_natal.js now LAT LON [--hsys=...]\nPrzykład: node kronos_natal.js 1985 6 15 14 30 50 20");
+  process.exit(1);
+}
+
+const jd = swe.dateToJulianDay(date);
+const H  = swe.calculateHouses(jd, lat, lon, hsys);
+const ayanV = K.ayan(date);
+const nodeV = K.meanNode(date);
+
+const P2 = n => String(n).padStart(2, " ");
+console.log(`\n╔═══ KRONOS·NATAL — domy: ${hsysName} · φ${lat.toFixed(2)} λ${lon.toFixed(2)} ═══╗`);
+console.log(`${opisCzasu}\nayanamsa Lahiri: ${ayanV.toFixed(2)}° · ☊ węzeł (średni, ±1.5°): ${nodeV.toFixed(1)}°\n`);
+
+console.log(`【 OSIE — status: NOŚNA RAMA⚠ (czułe na dokładność godziny/miejsca) 】`);
+for (const [naz, v] of [["ASC", H.ascendant], ["MC ", H.mc]]){
+  const p = fmtPoz(norm(v), ayanV, nodeV);
+  console.log(`${naz}  TROPIK ${p.trop}   |  LAHIRI ${p.lah}   |  DRAK ${p.drak}`);
+}
+
+console.log(`\n【 DOMY (cusps) — NOŚNA RAMA⚠ · układy rozróżnione jawnie 】`);
+for (let i = 1; i <= 12; i++){
+  const p = fmtPoz(norm(H.cusps[i]), ayanV, nodeV);
+  console.log(`D${P2(i)}  TROPIK ${p.trop}   |  LAHIRI ${p.lah}`);
+}
+
+console.log(`\n【 PLANETY — status: OBLICZONE · dom liczony raz (podział fizyczny) 】`);
+const bilans = {};
+for (const b of CIALA){
+  const L = tropLon(b, date);
+  const p = fmtPoz(L, ayanV, nodeV);
+  const dom = domDla(L, H.cusps);
+  bilans[p.elMatryca] = (bilans[p.elMatryca] || 0) + 1;
+  console.log(`${CSYM[b]} ${CPL[b].padEnd(8)} D${P2(dom)}  TROPIK ${p.trop}  | LAHIRI ${p.lah}  | DRAK ${p.drak}`);
+}
+{ // węzeł jako punkt
+  const p = fmtPoz(nodeV, ayanV, nodeV);
+  console.log(`☊ Węzeł    D${P2(domDla(nodeV, H.cusps))}  TROPIK ${p.trop}  | LAHIRI ${p.lah}`);
+}
+
+console.log(`\n【 BILANS ŻYWIOŁÓW MATRYCY (planety wg Lahiri) — surowe liczenie, nie werdykt 】`);
+console.log(Object.entries(bilans).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k}: ${v}`).join(" · "));
+console.log(`\n(interpretacja = KOMENTARZ Orkiestratora, nie diagnoza — silnik podaje liczby)`);
