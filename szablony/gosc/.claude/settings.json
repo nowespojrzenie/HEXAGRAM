@@ -1,0 +1,10 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "bash narzedzia/przyrzady/karta_wnioskow.sh przy-prompcie >/dev/null 2>&1; exit 0" } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "bash narzedzia/przyrzady/karta_wnioskow.sh wyslij --rzadko >/dev/null 2>&1; exit 0" } ] }
+    ]
+  }
+}
