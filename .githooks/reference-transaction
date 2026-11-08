@@ -1,0 +1,64 @@
+#!/bin/sh
+# ═══ ZAMEK #31 · reference-transaction (22.09.2026, decyzje D1/D2, słowo twórcy przez Opusa) ═══
+#
+# RODOWÓD: mechanizm poprzedni (pre-commit, wykrywanie `--amend` przez `/proc/$PPID/cmdline`) był
+# nieuzbrojony na Windows/MSYS2 nie z braku `/proc` (jest), tylko dlatego, że proces hooka dostaje
+# tam PPID=1, nie PID gita, który go odpalił — zmierzone, dowód w `WATKI_OTWARTE.md` (B2(a),
+# commit `2bc71d6`) i w KOLEJKA_M #31. `reference-transaction` nie zna tego problemu w ogóle:
+# git PODAJE mu `old new ref` wprost na stdin, bez introspekcji procesu.
+#
+# ZAKRES (D1, szerszy niż samo „amend"): zamek pilnuje PRAWA „nie przepisuj historii już
+# pushniętej" — łapie amend, rebase (interaktywny i zwykły) i reset, które cofają `refs/heads/*`
+# ZA to, co repo już wysłało do origin. Nie pyta o KOMENDĘ (amend/rebase/reset) — pyta o SKUTEK
+# (czy nowa wartość ref-a jest potomkiem starej, i czy stara była na origin). To ta sama miara,
+# inaczej złożona: dokładnie stąd bierze się szerszy zakres, bez nowej logiki ponad krok 1.
+# WYJĄTEK: usunięcie gałęzi lokalnej (`new` = same zera) PRZECHODZI ZAWSZE — kasowanie gałęzi
+# nie jest przepisywaniem historii, jest sprzątaniem wskaźnika. Poza `refs/heads/*` zamek MILCZY
+# (tagi, `refs/stash`, `refs/remotes/*`, pseudo-referencje jak `HEAD`/`ORIG_HEAD`/`AUTO_MERGE`/
+# `CHERRY_PICK_HEAD` — żadna z nich nie jest gałęzią pracy, którą ktoś już widział jako całość).
+#
+# FURTKA (D2): `KRONOS_ZAMEK31=off` — WYŁĄCZNIE zmienna środowiska NA KOMENDĘ (nigdy
+# `git config`, żeby nie została w repo cicho i nie przetrwała po autorze). Musi być DOKŁADNIE
+# `off` — `0`, `no`, cokolwiek innego NIE otwiera (zmierzone). Użycie zostawia ślad zawsze:
+# ostrzeżenie na stderr i jedna linia w `.git/KRONOS_FURTKA.log` (lokalny plik, POZA repo,
+# nigdy nie wchodzi do żadnego commita — katalog `.git/` nie jest śledzony).
+# `--no-verify` TEGO zamka NIE WYŁĄCZA: `--no-verify` pomija `pre-commit`/`commit-msg`,
+# nie `reference-transaction`. Jedyne wyłączenie poza D2 byłoby `core.hooksPath=/dev/null` —
+# nazwane tu wprost, żeby nikt po nie nie sięgał myśląc, że to naprawia coś innego.
+#
+# ZMIERZONE (Windows, jednorazowe fikstury w `/tmp`, sprzątnięte; pełny log w WATKI_OTWARTE):
+# blokuje amend pushnięty (pusty stage i po `git add`), rebase -i przepisujący pushnięty commit
+# (branch NIE rusza się w trakcie — `rebase --abort` wraca do czystego stanu), reset --hard
+# cofający pushnięty commit; przepuszcza zwykły commit, amend niepushnięty, pull --rebase
+# z lokalnym niepushniętym commitem na rozjechanym upstreamie, push/fetch, usunięcie gałęzi
+# (także takiej, która BYŁA pushnięta), reset --hard do origin; furtka `off` otwiera i loguje,
+# każda inna wartość (`0` na prawdziwie pushniętym) zostaje zablokowana.
+[ "$1" = prepared ] || exit 0
+Z=0000000000000000000000000000000000000000
+FURTKA="${KRONOS_ZAMEK31:-}"   # czytana RAZ, przed pętlą (D2) — string musi być DOKŁADNIE "off"
+LOG="${LOG:-.git/KRONOS_FURTKA.log}"
+while read old new ref; do
+  case "$ref" in refs/heads/*) ;; *) continue ;; esac
+  [ "$new" = "$Z" ] && continue   # (D1) usunięcie gałęzi lokalnej przechodzi zawsze
+  git merge-base --is-ancestor "$old" "$new" 2>/dev/null && continue
+  up="$(git rev-parse -q --verify "refs/remotes/origin/${ref#refs/heads/}" 2>/dev/null)"
+  if [ -n "$up" ] && git merge-base --is-ancestor "$old" "$up" 2>/dev/null; then
+    if [ "$FURTKA" = "off" ]; then
+      echo "$(date -u '+%Y-%m-%dT%H:%M:%SZ')  $ref  ${old}→${new}" >> "$LOG"
+      echo "⚠ FURTKA #31 UŻYTA — $ref przepisany mimo że pushnięty ($old → $new). Ślad: $LOG" >&2
+      continue
+    fi
+    {
+      echo "✗ #31 PRZEPISANIE HISTORII JUŻ PUSHNIĘTEJ"
+      echo "  gałąź:  $ref"
+      echo "  było:   $old  (jest na origin)"
+      echo "  będzie: $new"
+      echo "  powód:  prawo #31 — nie przepisuj tego, co repo już wysłało (amend/rebase/reset)."
+      echo "  wyjście: git rebase --abort  (jeśli w trakcie rebase)"
+      echo "           git reset --hard origin/${ref#refs/heads/}  (wrócić do stanu origin)"
+      echo "  furtka:  KRONOS_ZAMEK31=off <komenda>  — zostawia ślad w $LOG, --no-verify TEGO nie wyłącza."
+    } >&2
+    exit 1
+  fi
+done
+exit 0

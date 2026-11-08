@@ -1,0 +1,10 @@
+#!/bin/sh
+# ═══ pre-push gościa — push wolno WYŁĄCZNIE na refs/heads/wnioski ═══
+# RODOWÓD: PRAWO_KANALU_WNIOSKOW §6. To jest STRAŻNIK po stronie klienta, nie zamek: token
+# fine-grained nie ogranicza gałęzi, więc prawdziwy zamek na `main` gościa to ochrona gałęzi
+# po stronie GitHuba (ustawia twórca). Ten hak łapie pomyłkę instancji, zanim wyjdzie z kontenera.
+# git podaje na stdin: <local ref> <local sha> <remote ref> <remote sha>. Kod ≠0 = push wstrzymany.
+while read -r _lref _lsha rref _rsha; do
+  [ "$rref" = "refs/heads/wnioski" ] || { echo "✗ pre-push: push poza refs/heads/wnioski wstrzymany" >&2; exit 1; }
+done
+exit 0

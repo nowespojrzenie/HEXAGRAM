@@ -1,0 +1,38 @@
+{
+  "name": "hexagram-kronos",
+  "version": "1.8.5",
+  "description": "HEXAGRAM · KRONOS — silnik nieba: aspekty, natal, pełnia, okna (astronomy-engine + Swiss Ephemeris). Liczy lokalnie, dane nie wychodzą.",
+  "bin": {
+    "hexagram-kronos": "narzedzia/silniki/hexagram_kronos.js",
+    "kronos-lens": "narzedzia/silniki/hexagram_kronos.js",
+    "kronos-natal": "narzedzia/silniki/hexagram_kronos.js",
+    "kronos-pelnia": "narzedzia/silniki/hexagram_kronos.js",
+    "plan-okien": "narzedzia/silniki/hexagram_kronos.js"
+  },
+  "files": [
+    "narzedzia/silniki/*.js",
+    "!narzedzia/silniki/kronos_lens.bundle.js",
+    "ephe/"
+  ],
+  "scripts": {
+    "weryfikacja": "node weryfikacja.js",
+    "lens": "node narzedzia/silniki/kronos_lens.js",
+    "eter": "node narzedzia/silniki/kronos_eter.js",
+    "outer": "node narzedzia/silniki/scan_outer.js",
+    "dwarfs": "node narzedzia/silniki/scan_dwarfs.js",
+    "natal": "node narzedzia/silniki/kronos_natal.js",
+    "bundle": "npx --yes esbuild@0.28.2 narzedzia/silniki/kronos_lens.js --bundle --platform=node --target=node18 --external:./siatki.js --outfile=narzedzia/silniki/kronos_lens.bundle.js",
+    "test": "node --test testy_rdzen.js"
+  },
+  "dependencies": {
+    "@buff-beacon-project/curby-client": "^1.2.0",
+    "@swisseph/node": "^1.2.2",
+    "astronomy-engine": "^2.1.19"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "kronos": {
+    "strefa": "Europe/Warsaw"
+  }
+}
