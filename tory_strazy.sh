@@ -92,6 +92,7 @@ lint_artefaktow|node narzedzia/linty/lint_artefaktow.js --test
 lint_sciezek|node narzedzia/linty/lint_sciezek.js --test
 lint_klas_znakow|node narzedzia/linty/lint_klas_znakow.js --test
 lint_pryzmatu|node narzedzia/linty/lint_pryzmatu.js --test
+lint_shell|bash narzedzia/linty/lint_shell.sh --test
 lint_parytetu_krzesel|node narzedzia/linty/lint_parytetu_krzesel.js --test
 straz_duszy|bash narzedzia/straze/straz_duszy.sh --test
 straz_pochodzenia|bash narzedzia/straze/straz_pochodzenia.sh --test

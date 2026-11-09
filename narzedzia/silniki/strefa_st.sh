@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # strefa_st.sh — WSPÓLNY fragment strefy instancji dla skryptów powłoki (v1.8.2 C5, U1-14c; 14.10.2026).
 # Użycie (źródłowany, nie uruchamiany):  . "<katalog skryptu>/…/silniki/strefa_st.sh"   → ustawia _STREFA_ST
 #

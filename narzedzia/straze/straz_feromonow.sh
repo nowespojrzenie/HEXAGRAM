@@ -151,16 +151,16 @@ if [ "${1:-}" = "--biore" ]; then
   if [ -n "$ZLEC_N" ]; then
     if [ ! -f "$ZLEC_PLIK" ]; then
       echo "ⓘ temat niesie „zlecenie $ZLEC_N”, ale rejestru numerów ($ZLEC_PLIK) nie ma w tym drzewie — numeru nie sprawdzam."
-    elif ! grep -qE "^[[:space:]]*$ZLEC_N[[:space:]]*\|" "$ZLEC_PLIK"; then
+    elif ! grep -qE "^[[:space:]]*${ZLEC_N}[[:space:]]*\|" "$ZLEC_PLIK"; then
       echo "✗ NUMER ZLECENIA $ZLEC_N BEZ WIERSZA w $ZLEC_PLIK — numer istnieje dopiero z rejestru (AGENTS §Wiele rąk naraz, zasada 5). Nic nie zapisałem."
       echo "  → najpierw: echo \"$ZLEC_N | $(date +%F) | <wątek> · <temat> | <sesja>\" >> $ZLEC_PLIK   (wolny numer = największy N + 1; wiersz idzie tym samym pushem)   |   --mimo tego NIE omija"; exit 1
     # JEDYNOŚĆ NUMERU (zlecenie 35 · Z2, 06.11.2026; blizna b: 05.11 w rejestrze powstały dwa wiersze „32 |” — 535a1600 i 0052faa1 — a powyższe sprawdza tylko istnienie).
     # ≥2 wiersze tego numeru = rc=1 z listą wierszy (numer pliku:linia) i komendą naprawy; --mimo NIE omija. Rejestr jest append-only, więc naprawa = przenumerowanie
     # DRUGIEGO wiersza nowym numerem (dopisanie, bez edycji historii), jak zrobiono dla 33 (przeniesione z 32).
-    elif [ "$(grep -cE "^[[:space:]]*$ZLEC_N[[:space:]]*\|" "$ZLEC_PLIK")" -ge 2 ]; then
+    elif [ "$(grep -cE "^[[:space:]]*${ZLEC_N}[[:space:]]*\|" "$ZLEC_PLIK")" -ge 2 ]; then
       ZLEC_WOLNY="$(sed -n 's/^[[:space:]]*\([0-9][0-9]*\)[[:space:]]*|.*/\1/p' "$ZLEC_PLIK" | sort -n | tail -n 1)"; ZLEC_WOLNY=$(( ${ZLEC_WOLNY:-0} + 1 ))
-      echo "✗ NUMER ZLECENIA $ZLEC_N NIE JEST JEDYNY: $(grep -cE "^[[:space:]]*$ZLEC_N[[:space:]]*\|" "$ZLEC_PLIK") wiersze w $ZLEC_PLIK (zasada 5: numer ma jednego właściciela). Nic nie zapisałem."
-      grep -nE "^[[:space:]]*$ZLEC_N[[:space:]]*\|" "$ZLEC_PLIK" | sed "s|^|     $ZLEC_PLIK:|"
+      echo "✗ NUMER ZLECENIA $ZLEC_N NIE JEST JEDYNY: $(grep -cE "^[[:space:]]*${ZLEC_N}[[:space:]]*\|" "$ZLEC_PLIK") wiersze w $ZLEC_PLIK (zasada 5: numer ma jednego właściciela). Nic nie zapisałem."
+      grep -nE "^[[:space:]]*${ZLEC_N}[[:space:]]*\|" "$ZLEC_PLIK" | sed "s|^|     $ZLEC_PLIK:|"
       echo "  → naprawa (przenumerowanie, rejestr append-only): drugiemu wierszowi nadaj wolny numer $ZLEC_WOLNY:  echo \"$ZLEC_WOLNY | $(date +%F) | <wątek · temat drugiego wiersza> (przeniesione z $ZLEC_N) | <sesja>\" >> $ZLEC_PLIK   |   --mimo tego NIE omija"; exit 1
     fi
   fi

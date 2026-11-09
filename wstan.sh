@@ -354,7 +354,14 @@ if [ "$_NPM_RC" -ne 0 ]; then
   _DOWOD="$_GD/npm_awaria/NPM_AWARIA_$(date -u +%Y%m%dT%H%M%SZ).txt"
   { echo "data (UTC): $(date -u -Iseconds)"; echo "stan node_modules przed próbą: $_NM_STAN"; \
     echo "npm ci rc: $_NPM_RC"; echo "---"; cat "$_NPM_LOG"; } > "$_DOWOD" 2>/dev/null
-  echo "   ✗ npm ci padł — package.json i package-lock.json rozjechane? (npm install świadomie, potem commit lockfile)"
+  # C1 (zlecenie 48, 09.11): trzy przyczyny, trzy zdania — dotąd każda czytana jako „lockfile rozjechany".
+  if [ "$_NPM_RC" -eq 127 ]; then
+    echo "   ✗ brak npm (rc 127) — npm nie jest w PATH; zainstaluj Node/npm albo popraw PATH (to nie jest wina lockfile)"
+  elif grep -q 'EPERM' "$_NPM_LOG" 2>/dev/null; then
+    echo "   ✗ npm ci padł na EPERM (rc $_NPM_RC) — system plików odrzucił zapis w node_modules (uprawnienia/montowanie), nie lockfile"
+  else
+    echo "   ✗ npm ci padł (rc $_NPM_RC) — sprawdź wyjście wyżej; jeśli to ERESOLVE/EUSAGE: package.json i package-lock.json rozjechane (npm install świadomie, potem commit lockfile)"
+  fi
   echo "   📋 surowy dowód (stan node_modules: $_NM_STAN): $_DOWOD  (poza drzewem śledzonym)"
   rm -f "$_NPM_LOG"
   exit 1
@@ -364,8 +371,10 @@ fi
 
 # 4. Werdykt: czy wstałem cały (liczony, nie recytowany)
 echo "🔎 node weryfikacja.js:"
-node weryfikacja.js
-RC=$?
+# C2 (zlecenie 48): jeden bieg — wyjście zostaje w pliku i karmi żeton (pkt 6), zamiast drugiego biegu weryfikacji.
+_WER_LOG="$(mktemp)"
+node weryfikacja.js | tee "$_WER_LOG"
+RC=${PIPESTATUS[0]}
 
 echo
 # 4a. LINT KSIĘGI BŁĘDÓW (prawo #22 zmechanizowane 28.07) — niekrytyczny, nie zmienia RC wstania
@@ -638,9 +647,10 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
 else
   _ZH="$(git rev-parse --short HEAD 2>/dev/null || echo BRAK)"
 fi
-_ZW="$(node weryfikacja.js 2>/dev/null | sed 's/\x1b\[[0-9;]*m//g' \
+_ZW="$(sed 's/\x1b\[[0-9;]*m//g' "$_WER_LOG" 2>/dev/null \
        | grep -E '[0-9]+ ✓ +[0-9]+ ✗ +[0-9]+ ⚠' \
        | grep -oE '[0-9]+' | paste -sd'/' -)"
+rm -f "$_WER_LOG"
 _ZC="$(TZ="$_STREFA_ST" date '+%Y-%m-%d %H:%M %Z')"
 echo
 echo "🎟 ŻETON WSTANIA — pierwsza linia Twojego meldunku, skopiuj DOSŁOWNIE:"

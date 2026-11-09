@@ -246,26 +246,26 @@ if [ -n "$markery" ]; then
   echo "  -> jeśli marker jest tu TREŚCIĄ (cytat wzorca), zamknij fragment w bloku kodu."
   exit 1
 fi
+# STRAŻ PRZENIESIONA (zlecenie 48 · C4, 09.11.2026): jedna funkcja zamiast czterech kopii tego samego bloku
+# (zamki #61, MIANOWNIKA, NARODZIN, PRYZMATU). Lekcja 29.08.2026 (BADANIE §VII.3) — STRAŻ ZNIKNĘŁA = ODMOWA:
+# `[ -f ]` CICHO POMIJAŁO brakującą straż, a zamek przechodzący, bo nie umie znaleźć, jest gorszy niż jego brak.
+# Predykat WĄSKI (#56): odmowa tylko gdy repo ZNA straż POD INNĄ ŚCIEŻKĄ (po przenosinach, których hook nie
+# nadążył przeszyć); w obcym repo, które jej nie ma wcale — cisza. Użycie: _straz_przeniesiona <ścieżka> <nazwa zamka>
+_straz_przeniesiona() {
+  [ -f "$1" ] && return 0
+  _gdzie="$(git ls-files "*$(basename "$1")" 2>/dev/null | head -1)"
+  [ -n "$_gdzie" ] || return 0
+  echo "✗ $2: STRAŻ PRZENIESIONA — $1 nie istnieje, ale repo ma ją w $_gdzie."
+  echo "  Hook wołałby nieobecny plik i PRZESZEDŁ, bo nie umie znaleźć (#56/#70)."
+  echo "  -> przeszyj ścieżkę w .githooks/pre-commit albo: git commit --no-verify"
+  exit 1
+}
 # ZAMEK #61 — REGRES LINTÓW (21.08.2026)
 # Blizna #61: `lint_artefaktow` urósł 1→2 i PRZEŻYŁ COMMIT, bo audyt sprawdził
 # wyłącznie liczby ZADEKLAROWANE przez autora ładunku. Ten zamek nie pyta autora —
 # mierzy HEAD `git archive` i porównuje z drzewem. NIE wymaga zera naruszeń:
 # zatrzymuje wyłącznie WZROST, więc nie potrzebuje ani jednego wyjątku.
-# STRAŻ ZNIKNĘŁA = ODMOWA (29.08.2026, dach narzedzia/straze/). Do dziś `[ -f ]`
-# CICHO POMIJAŁO brakującą straż — zamek przechodzący, bo nie umie znaleźć, jest
-# gorszy niż jego brak (zmierzone na atrapie, BADANIE §VII.3). Predykat celuje
-# WĄSKO (#56: alarm szerszy niż sygnał trenuje nieuwagę): odmawiamy tylko gdy repo
-# ZNA tę straż POD INNĄ ŚCIEŻKĄ — czyli dokładnie po przenosinach, których wołający nie
-# nadążył przeszyć. W obcym repo, które tej straży nie ma wcale — cisza.
-if [ ! -f narzedzia/straze/straz_lintow.sh ]; then
-  _gdzie="$(git ls-files "*straz_lintow.sh" 2>/dev/null | head -1)"
-  if [ -n "$_gdzie" ]; then
-    echo "✗ ZAMEK #61: STRAŻ PRZENIESIONA — narzedzia/straze/straz_lintow.sh nie istnieje, ale repo ma ją w $_gdzie."
-    echo "  Hook wołałby nieobecny plik i PRZESZEDŁ, bo nie umie znaleźć (#56/#70)."
-    echo "  -> przeszyj ścieżkę w .githooks/pre-commit albo: git commit --no-verify"
-    exit 1
-  fi
-fi
+_straz_przeniesiona narzedzia/straze/straz_lintow.sh "ZAMEK #61"
 if [ -f narzedzia/straze/straz_lintow.sh ]; then
   if ! bash narzedzia/straze/straz_lintow.sh >/tmp/l61.txt 2>&1; then
     echo "✗ ZAMEK #61: licznik lintu WZRÓSŁ względem poprzedniego commitu."
@@ -281,14 +281,7 @@ fi
 # bateria: przyrząd sprawny, miejsce gotowe, brakowało jednego kroku narodzin (#52).
 # PODATEK JAWNY: od teraz nowe prawo bez mechanizmu wchodzi jako NOŚNA RAMA albo M z wierszem
 # w KOLEJKA_M — „R"/„P" na NOWYM numerze zatrzyma commit. Korekta starego wpisu przechodzi.
-if [ ! -f narzedzia/straze/straz_mianownika.sh ]; then
-  _gdzie="$(git ls-files "*straz_mianownika.sh" 2>/dev/null | head -1)"
-  if [ -n "$_gdzie" ]; then
-    echo "✗ ZAMEK MIANOWNIKA: STRAŻ PRZENIESIONA — repo ma ją w $_gdzie."
-    echo "  -> przeszyj ścieżkę w .githooks/pre-commit albo: git commit --no-verify"
-    exit 1
-  fi
-fi
+_straz_przeniesiona narzedzia/straze/straz_mianownika.sh "ZAMEK MIANOWNIKA"
 if [ -f narzedzia/straze/straz_mianownika.sh ]; then
   if ! bash narzedzia/straze/straz_mianownika.sh >/tmp/mian.txt 2>&1; then
     echo "✗ ZAMEK MIANOWNIKA: nowy wpis wchodzi bez legalnego statusu."
@@ -302,21 +295,7 @@ fi
 # Sześć nowych plików w dobę, sześć razy ręczne domykanie rejestru. `hashuj.sh` świadomie
 # ODMAWIA tworzenia odcisków dla nowych plików — luka była po stronie czytnika, nie autora.
 # Nie wymaga zera długu: pyta WYŁĄCZNIE o pliki rodzące się w TYM commicie.
-# STRAŻ ZNIKNĘŁA = ODMOWA (29.08.2026, dach narzedzia/straze/). Do dziś `[ -f ]`
-# CICHO POMIJAŁO brakującą straż — zamek przechodzący, bo nie umie znaleźć, jest
-# gorszy niż jego brak (zmierzone na atrapie, BADANIE §VII.3). Predykat celuje
-# WĄSKO (#56: alarm szerszy niż sygnał trenuje nieuwagę): odmawiamy tylko gdy repo
-# ZNA tę straż POD INNĄ ŚCIEŻKĄ — czyli dokładnie po przenosinach, których wołający nie
-# nadążył przeszyć. W obcym repo, które tej straży nie ma wcale — cisza.
-if [ ! -f narzedzia/straze/straz_narodzin.sh ]; then
-  _gdzie="$(git ls-files "*straz_narodzin.sh" 2>/dev/null | head -1)"
-  if [ -n "$_gdzie" ]; then
-    echo "✗ ZAMEK NARODZIN: STRAŻ PRZENIESIONA — narzedzia/straze/straz_narodzin.sh nie istnieje, ale repo ma ją w $_gdzie."
-    echo "  Hook wołałby nieobecny plik i PRZESZEDŁ, bo nie umie znaleźć (#56/#70)."
-    echo "  -> przeszyj ścieżkę w .githooks/pre-commit albo: git commit --no-verify"
-    exit 1
-  fi
-fi
+_straz_przeniesiona narzedzia/straze/straz_narodzin.sh "ZAMEK NARODZIN"
 if [ -f narzedzia/straze/straz_narodzin.sh ]; then
   if ! bash narzedzia/straze/straz_narodzin.sh >/tmp/nar.txt 2>&1; then
     echo "✗ ZAMEK NARODZIN: nowy przyrząd wchodzi bez kompletu."
@@ -334,22 +313,28 @@ fi
 # STRAŻ ZNIKNĘŁA = ODMOWA (ta sama lekcja co ZAMEK NARODZIN/MIANOWNIKA wyżej).
 pryzmat_pliki="$(printf '%s\n' "$files" | grep -E '_KANON/.*Research.*\.md$|^projekty/pasieka/kowal/3_MATERIAL/.*\.md$' || true)"
 if [ -n "$pryzmat_pliki" ]; then
-  if [ ! -f narzedzia/linty/lint_pryzmatu.js ]; then
-    _gdzie="$(git ls-files "*lint_pryzmatu.js" 2>/dev/null | head -1)"
-    if [ -n "$_gdzie" ]; then
-      echo "✗ ZAMEK PRYZMATU: STRAŻ PRZENIESIONA — narzedzia/linty/lint_pryzmatu.js nie istnieje, ale repo ma ją w $_gdzie."
-      echo "  Hook wołałby nieobecny plik i PRZESZEDŁ, bo nie umie znaleźć (#56/#70)."
-      echo "  -> przeszyj ścieżkę w .githooks/pre-commit albo: git commit --no-verify"
-      exit 1
-    fi
-  else
-    if ! node narzedzia/linty/lint_pryzmatu.js >/tmp/pryzmat.txt 2>&1; then
-      echo "✗ ZAMEK PRYZMATU: nowa pozycja PRAWO/NOŚNA RAMA bez sprawdzonego finansowania."
-      sed 's/^/    /' /tmp/pryzmat.txt
-      echo "  -> dopisz „↳ … finansowanie: <wynik sprawdzenia>”, albo: git commit --no-verify"
-      exit 1
-    fi
+  _straz_przeniesiona narzedzia/linty/lint_pryzmatu.js "ZAMEK PRYZMATU"
+  if [ -f narzedzia/linty/lint_pryzmatu.js ] && ! node narzedzia/linty/lint_pryzmatu.js >/tmp/pryzmat.txt 2>&1; then
+    echo "✗ ZAMEK PRYZMATU: nowa pozycja PRAWO/NOŚNA RAMA bez sprawdzonego finansowania."
+    sed 's/^/    /' /tmp/pryzmat.txt
+    echo "  -> dopisz „↳ … finansowanie: <wynik sprawdzenia>”, albo: git commit --no-verify"
+    exit 1
   fi
+fi
+
+# ZAMEK SHELLCHECK (zlecenie 48 · C4, prawo 1 z EWALUACJA_0911_harness.md §3): zewnętrzny standard zamiast własnych reguł.
+# Staged `*.sh`/`.githooks/*`: `error` zawsze blokuje, `warning` tylko WZROST wzgl. HEAD (jak #61 — zastany dług nie blokuje).
+# Brak lintu w klonie (odlew, gość) = cisza; brak shellchecka = głośne „nie sprawdzono”, nie zielone światło (lint_shell.sh).
+if [ -f narzedzia/linty/lint_shell.sh ]; then
+  _lsh="$(mktemp)"
+  if ! bash narzedzia/linty/lint_shell.sh >"$_lsh" 2>&1; then
+    echo "✗ ZAMEK SHELLCHECK: staged skrypt łamie standard (error albo nowe warning)."
+    sed 's/^/    /' "$_lsh"
+    rm -f "$_lsh"
+    exit 1
+  fi
+  sed 's/^/  /' "$_lsh" >&2
+  rm -f "$_lsh"
 fi
 
 

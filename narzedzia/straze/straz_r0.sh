@@ -190,14 +190,14 @@ if [ "${1:-}" = "--test" ]; then
   # (②b) CYTAT wzorca PRARODZINY w korpusie NIE MOŻE włączać flagi (21.08). Fikstura
   #      odróżnialna: ta sama treść raz jako nagłówek (liczona), raz w środku zdania.
   printf 'tekst o bledzie: kotwica `## ⬡ PRARODZINY` byla zla\n' >> "$TR/BLEDY.md"
-  printf 'Y%%.0s' $(seq 1 5000) >> "$TR/BLEDY.md"
+  printf 'Y%.0s' $(seq 1 5000) >> "$TR/BLEDY.md"
   W3="$(wycinek_prarodziny "$TR/BLEDY.md")"
   [ "$W3" -eq "$W2" ] || zle="$zle cytat-prarodzin-wlacza-flage($W2→$W3)"
   # (②c) LUSTRO na drugiej granicy — cytat `## ▣ INDEKS` w korpusie nie może włączać
   #      flagi INDEKSU. Ten sam kształt wady, nowa krawędź (18.09, dopisana przy rozdziale,
   #      zanim zdążyła się zdarzyć na żywym repo — nie po fakcie).
   printf 'tekst o bledzie: naglowek `## ▣ INDEKS` bywa cytowany\n' >> "$TR/BLEDY.md"
-  printf 'Z%%.0s' $(seq 1 5000) >> "$TR/BLEDY.md"
+  printf 'Z%.0s' $(seq 1 5000) >> "$TR/BLEDY.md"
   I3="$(wycinek_indeks "$TR/BLEDY.md")"
   [ "$I3" -eq "$I2" ] || zle="$zle cytat-indeksu-wlacza-flage($I2→$I3)"
   # (③) na ŻYWEJ księdze: PROZA mała i STABILNA (rodowód: 1,9–2,0 kB od lipca),

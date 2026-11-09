@@ -1042,3 +1042,5 @@ oczy-wyjatek-dla-kazdego-pdf|||narzedzia/przyrzady/oczy_odbiorcy.py|||if s == sh
 oczy-stara-regula-wygrywa|||narzedzia/przyrzady/oczy_odbiorcy.py|||        else: reguly[c[1]] = (c[2], "|".join(c[3:]))|||        else: reguly.setdefault(c[1], (c[2], "|".join(c[3:])))|||python3 narzedzia/przyrzady/oczy_odbiorcy.py --test
 oczy-brak-regul-to-zgoda|||narzedzia/przyrzady/oczy_odbiorcy.py|||    if not reguly: raise SystemExit(|||    if False: raise SystemExit(|||python3 narzedzia/przyrzady/oczy_odbiorcy.py --test
 oczy-strony-miara-zepsuta|||narzedzia/przyrzady/oczy_odbiorcy.py|||    return int(m.group(1))|||    return 1|||python3 narzedzia/przyrzady/oczy_odbiorcy.py --test
+# lint_shell (zlecenie 48 · C4, 09.11.2026): wzrost liczby warning przestaje blokować (zostaje tylko error).
+lintshell-wzrost-warning-przechodzi|||narzedzia/linty/lint_shell.sh|||if [ "$err" -gt 0 ] || [ "$w_teraz" -gt "$w_przed" ]; then|||if [ "$err" -gt 0 ]; then|||bash narzedzia/linty/lint_shell.sh --test

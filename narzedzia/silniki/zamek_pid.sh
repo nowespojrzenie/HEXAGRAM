@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 # zamek_pid.sh — JEDNA funkcja czytania plików-zamków `PID:czas[:…]` (źródłują ją mutacje.sh i zapis_git.sh; zlecenie 22 · Z1, 29.10.2026).
 # Pierwotnie dwie kopie tego samego kodu (#112: zamek biegu mutacyjnego w mutacje.sh i w zapis_git.sh); zamek drzewa zapisu (rc=11) byłby trzecią (#49).
 # Użycie:  zp_rc=0; zamek_pid_czytaj <plik> || zp_rc=$?      (pod `set -e` zawsze z `|| …`)

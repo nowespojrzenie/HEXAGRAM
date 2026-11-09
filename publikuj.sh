@@ -87,7 +87,7 @@ narzedzia/silniki/kronos_lens.bundle.js narzedzia/silniki/hexagram_kronos.js"
   #   URUCHAMIA ZAMEK"). Publikujemy więc przyrząd ze sprawą otwartą, świadomie.
   # Zamki sprawdzone PRZED dopisaniem, nie po: wyciek 0 trafień obie · graf domknięty
   #   (`narzedzia/przyrzady/pokrycie_m.js` i `kanon/ksiegi/BLEDY.md` już na liście) · własne tory rc=0 obie.
-  FORMA_SH="wstan.sh publikuj.sh narzedzia/przyrzady/sync_rdzen.sh zapis_git.sh narzedzia/straze/straz_czystosci.sh hashuj.sh narzedzia/straze/straz_duszy.sh \
+  FORMA_SH="wstan.sh narzedzia/linty/lint_shell.sh publikuj.sh narzedzia/przyrzady/sync_rdzen.sh zapis_git.sh narzedzia/straze/straz_czystosci.sh hashuj.sh narzedzia/straze/straz_duszy.sh \
 narzedzia/straze/straz_deklamatora.sh narzedzia/straze/straz_kryteriow.sh narzedzia/straze/straz_mostow.sh narzedzia/straze/straz_prerejestrow.sh narzedzia/straze/straz_r0.sh \
 narzedzia/straze/straz_hooka.sh narzedzia/straze/straz_wstania.sh narzedzia/straze/straz_zetonu.sh narzedzia/straze/straz_przyrzadu.sh narzedzia/straze/straz_powtorzen.sh narzedzia/straze/straz_wywolan.sh narzedzia/straze/straz_zamkow.sh narzedzia/przyrzady/crash_izolacja.sh mutacje.sh tory_strazy.sh gotowosc.sh \
 narzedzia/straze/straz_interpolacji.sh narzedzia/straze/straz_tropu.sh narzedzia/straze/straz_lintow.sh narzedzia/straze/straz_feromonow.sh \
