@@ -190,7 +190,7 @@ b704722a1bce  szablony/drzwi/AGENTS.md
 b704722a1bce  szablony/drzwi/CLAUDE.md
 ec82daea78dc  szablony/gosc/.claude/settings.json
 e59da10acfc7  szablony/gosc/.githooks/pre-push
-f796e3416be8  szablony/gosc/CLAUDE.md
+a4f919e96bd7  szablony/gosc/CLAUDE.md
 2b4437f8e74d  szablony/gosc/CO_MOZEMY_RAZEM.md
 b2ea8cd5a4e1  szablony/gosc/DRZWI.md
 db7269f888d2  szablony/gosc/INSTRUKCJA_PROJEKTU.md
