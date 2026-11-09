@@ -5,7 +5,7 @@ eec8540c7c7b  .gitattributes
 4e1a3ff2e777  0_SNAPSHOT_watek.md
 aa66da3ebdb1  0_WYWOLANIA.md
 b704722a1bce  AGENTS.md
-021f30514e32  CLAUDE.md
+599d63edb5a4  CLAUDE.md
 6ab1ba6be92c  DUSZA.md
 d06b94bc0161  JADRO.md
 2d98b593d0eb  LICENSE
@@ -190,7 +190,7 @@ b704722a1bce  szablony/drzwi/AGENTS.md
 b704722a1bce  szablony/drzwi/CLAUDE.md
 ec82daea78dc  szablony/gosc/.claude/settings.json
 e59da10acfc7  szablony/gosc/.githooks/pre-push
-021f30514e32  szablony/gosc/CLAUDE.md
+599d63edb5a4  szablony/gosc/CLAUDE.md
 2b4437f8e74d  szablony/gosc/CO_MOZEMY_RAZEM.md
 b2ea8cd5a4e1  szablony/gosc/DRZWI.md
 db7269f888d2  szablony/gosc/INSTRUKCJA_PROJEKTU.md
